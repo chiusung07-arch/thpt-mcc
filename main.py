@@ -1,38 +1,37 @@
 import streamlit as st
 from datetime import datetime
 
-# --- CẤU HÌNH TRANG ---
+# --- CẤU HÌNH ---
 st.set_page_config(page_title="THPT Mù Cang Chải", page_icon="🏫")
 
-# 1. KHỞI TẠO DỮ LIỆU HỆ THỐNG
+# 1. KHỞI TẠO DỮ LIỆU
 if 'users' not in st.session_state:
-    st.session_state.users = {"admin": {"password": "123", "name": "Ban Giám Khảo", "class": "BTC"}}
-if 'page' not in st.session_state: st.session_state.page = "login"
+    st.session_state.users = {
+        "admin": {"password": "123", "name": "Thầy Chủ Nhiệm", "role": "admin_gv"},
+        "adminbaoan": {"password": "12345678", "name": "Quản lý Bán trú", "role": "admin_an"}
+    }
+if 'lich_su' not in st.session_state: st.session_state.lich_su = []
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
-if 'lich_su_gui' not in st.session_state: st.session_state.lich_su_gui = []
 
-# 2. GIAO DIỆN ĐĂNG KÝ
+# 2. TRANG ĐĂNG KÝ
 def registration_page():
     st.title("📝 ĐĂNG KÝ TÀI KHOẢN")
     with st.form("reg_form"):
         name = st.text_input("Họ và tên học sinh:")
-        dob = st.date_input("Ngày tháng năm sinh:", min_value=datetime(2000, 1, 1))
         classes = ([f"10A{i}" for i in range(1, 10)] + [f"11A{i}" for i in range(1, 8)] + [f"12A{i}" for i in range(1, 8)])
         lop = st.selectbox("Lớp:", classes)
         user_id = st.text_input("Tên tài khoản:")
         pwd = st.text_input("Mật khẩu:", type="password")
         if st.form_submit_button("Xác nhận đăng ký"):
             if user_id and pwd and name:
-                st.session_state.users[user_id] = {"password": pwd, "name": name, "class": lop}
+                st.session_state.users[user_id] = {"password": pwd, "name": name, "class": lop, "role": "student"}
                 st.success("✅ Đăng ký thành công! Hãy quay lại đăng nhập.")
-            else: st.error("Vui lòng điền đủ thông tin!")
-    if st.button("Quay lại Đăng nhập"):
-        st.session_state.page = "login"
-        st.rerun()
+            else: st.error("Điền thiếu thông tin!")
+    if st.button("Quay lại Đăng nhập"): st.session_state.page = "login"; st.rerun()
 
-# 3. GIAO DIỆN ĐĂNG NHẬP
+# 3. TRANG ĐĂNG NHẬP
 def login_page():
-    st.title("🏫 TRƯỜNG THPT MÙ CANG CHẢI")
+    st.title("🏫 THPT MÙ CANG CHẢI")
     user_input = st.text_input("Tên tài khoản:")
     pwd_input = st.text_input("Mật khẩu:", type="password")
     if st.button("Đăng nhập", use_container_width=True):
@@ -41,76 +40,65 @@ def login_page():
             st.session_state.user_info = st.session_state.users[user_input]
             st.rerun()
         else: st.error("Sai tài khoản hoặc mật khẩu!")
-    if st.button("Chưa có tài khoản? Đăng ký ngay", use_container_width=True):
-        st.session_state.page = "register"
-        st.rerun()
+    if st.button("Đăng ký tài khoản mới", use_container_width=True): st.session_state.page = "register"; st.rerun()
 
-# 4. GIAO DIỆN CHÍNH (DASHBOARD)
-def main_dashboard():
+# 4. GIAO DIỆN CHÍNH
+def main_app():
     user = st.session_state.user_info
     st.sidebar.title(f"👤 {user['name']}")
-    st.sidebar.write(f"🏫 Lớp: {user['class']}")
-    if st.sidebar.button("Đăng xuất"):
-        st.session_state.logged_in = False
-        st.rerun()
+    if 'class' in user: st.sidebar.write(f"Lớp: {user['class']}")
+    if st.sidebar.button("Đăng xuất"): st.session_state.logged_in = False; st.rerun()
 
-    st.title("📍 BẢNG ĐIỀU KHIỂN")
-    col1, col2, col3 = st.columns(3)
-    col4, col5 = st.columns(2)
-
-    with col1: 
-        if st.button("📍 Điểm danh", use_container_width=True):
-            st.session_state.lich_su_gui.append({
-                "Thời gian": datetime.now().strftime("%H:%M - %d/%m"),
-                "Học sinh": user['name'], "Lớp": user['class'], "Nội dung": "Điểm danh có mặt"
-            })
-            st.success("✅ Đã gửi điểm danh!")
-    with col2: 
-        if st.button("🍱 Báo ăn", use_container_width=True): st.session_state.sub = "an"
-    with col3: 
-        if st.button("📚 TKB", use_container_width=True): st.session_state.sub = "tkb"
-    with col4: 
-        if st.button("📝 Xin nghỉ", use_container_width=True): st.session_state.sub = "nghi"
-    with col5: 
-        if st.button("🤖 Trợ giúp", use_container_width=True): st.session_state.sub = "ai"
-
-    if 'sub' in st.session_state:
-        st.divider()
-        if st.session_state.sub == "an":
-            st.write("🍱 **Báo ăn bán trú**")
+    # --- GIAO DIỆN HỌC SINH ---
+    if user.get('role') == "student":
+        st.title("📍 CỔNG THÔNG TIN HỌC SINH")
+        tab1, tab2, tab3, tab4 = st.tabs(["Điểm danh", "Báo ăn", "Xin nghỉ", "Phản ánh"])
+        
+        with tab1:
+            if st.button("📍 XÁC NHẬN CÓ MẶT"):
+                st.session_state.lich_su.append({"Loại": "Điểm danh", "Lớp": user['class'], "Tên": user['name'], "Nội dung": "Đã đi học", "Thời gian": datetime.now().strftime("%H:%M %d/%m")})
+                st.success("✅ Đã điểm danh thành công!")
+        
+        with tab2:
             thu = st.selectbox("Chọn thứ:", ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6"])
             chon = st.radio("Lựa chọn:", ["Đăng ký ăn", "Xin nghỉ ăn bữa này"])
-            if st.button("Gửi báo cáo cơm"):
-                st.session_state.lich_su_gui.append({
-                    "Thời gian": datetime.now().strftime("%H:%M - %d/%m"),
-                    "Học sinh": user['name'], "Lớp": user['class'], "Nội dung": f"Báo ăn {thu}: {chon}"
-                })
-                st.success("✅ Đã báo cơm thành công!")
-        elif st.session_state.sub == "tkb":
-            st.table({"Buổi": ["Sáng", "Chiều"], "T1": ["Toán", "Sử"], "T2": ["Văn", "Địa"], "T3": ["Anh", "GDCD"], "T4": ["Lý", "CN"], "T5": ["Hóa", "SHL"]})
-        elif st.session_state.sub == "nghi":
-            ly_do = st.text_area("Lý do nghỉ:")
-            if st.button("Gửi thầy chủ nhiệm"):
-                st.session_state.lich_su_gui.append({
-                    "Thời gian": datetime.now().strftime("%H:%M - %d/%m"),
-                    "Học sinh": user['name'], "Lớp": user['class'], "Nội dung": f"XIN NGHỈ: {ly_do}"
-                })
-                st.warning("⏳ Chờ thầy giáo chủ nhiệm xác nhận...")
-        elif st.session_state.sub == "ai":
-            hoi = st.text_input("🤖 Hỏi AI bất cứ điều gì về trường:")
-            if hoi: st.write("AI: Tôi đã ghi nhận câu hỏi và sẽ phản hồi sớm!")
+            if st.button("Gửi báo cáo ăn"):
+                st.session_state.lich_su.append({"Loại": "Báo ăn", "Lớp": user['class'], "Tên": user['name'], "Nội dung": f"{thu}: {chon}", "Thời gian": datetime.now().strftime("%H:%M %d/%m")})
+                st.success("🍱 Đã báo cơm thành công!")
 
-    # MỤC DÀNH CHO GIÁO VIÊN (ADMIN)
-    if user['class'] == "BTC":
-        st.divider()
-        st.subheader("📊 DANH SÁCH BÁO CÁO (Dành cho Giáo viên)")
-        if st.session_state.lich_su_gui:
-            st.table(st.session_state.lich_su_gui)
-        else:
-            st.write("Chưa có báo cáo nào.")
+        with tab3:
+            ly_do = st.text_area("Nhập lý do xin nghỉ:")
+            if st.button("Gửi đơn cho thầy cô"):
+                st.session_state.lich_su.append({"Loại": "Xin nghỉ", "Lớp": user['class'], "Tên": user['name'], "Nội dung": ly_do, "Thời gian": datetime.now().strftime("%H:%M %d/%m")})
+                st.info("⏳ Đã gửi đơn. Chờ thầy cô phê duyệt.")
 
-# ĐIỀU HƯỚNG CHÍNH
+        with tab4:
+            thac_mac = st.text_area("Nhập thắc mắc hoặc phản ánh của bạn:")
+            if st.button("Gửi hòm thư góp ý"):
+                st.session_state.lich_su.append({"Loại": "Phản ánh", "Lớp": user['class'], "Tên": user['name'], "Nội dung": thac_mac, "Thời gian": datetime.now().strftime("%H:%M %d/%m")})
+                st.success("📩 Đã gửi ý kiến đến nhà trường.")
+
+    # --- GIAO DIỆN ADMIN GIÁO VIÊN ---
+    elif user.get('role') == "admin_gv":
+        st.title("📂 HÒM THƯ QUẢN LÝ GIÁO VIÊN")
+        st.subheader("1. Danh sách học sinh đi học")
+        chon_lop = st.selectbox("Xem theo lớp:", [f"{k}A{i}" for k in [10,11,12] for i in range(1,10)])
+        ds_lop = [item for item in st.session_state.lich_su if item['Loại'] == "Điểm danh" and item['Lớp'] == chon_lop]
+        st.table(ds_lop if ds_lop else "Chưa có dữ liệu lớp này")
+
+        st.subheader("2. Hòm thư Xin nghỉ & Phản ánh")
+        ds_don = [item for item in st.session_state.lich_su if item['Loại'] in ["Xin nghỉ", "Phản ánh"]]
+        st.table(ds_don if ds_don else "Hòm thư đang trống")
+
+    # --- GIAO DIỆN ADMIN BÁO ĂN ---
+    elif user.get('role') == "admin_an":
+        st.title("🍱 QUẢN LÝ BÁN TRÚ")
+        st.subheader("Danh sách học sinh Báo ăn / Nghỉ ăn")
+        ds_an = [item for item in st.session_state.lich_su if item['Loại'] == "Báo ăn"]
+        st.table(ds_an if ds_an else "Chưa có dữ liệu báo ăn")
+
+# ĐIỀU HƯỚNG
 if not st.session_state.logged_in:
-    if st.session_state.page == "login": login_page()
+    if 'page' not in st.session_state or st.session_state.page == "login": login_page()
     else: registration_page()
-else: main_dashboard()
+else: main_app()
