@@ -8,14 +8,17 @@ st.set_page_config(page_title="THPT Mù Cang Chải", page_icon="🏫", layout="
 
 # 1. HÀM XỬ LÝ DỮ LIỆU (Lưu vĩnh viễn vào CSV)
 def load_users():
-    if os.path.exists("hoc_sinh.csv"):
-        return pd.read_csv("hoc_sinh.csv").to_dict('records')
+    if os.path.exists("hoc-sinh.csv"):
+        try:
+            return pd.read_csv("hoc-sinh.csv").to_dict('records')
+        except:
+            return []
     return []
 
 def save_user_to_csv(new_user):
     users = load_users()
     users.append(new_user)
-    pd.DataFrame(users).to_csv("hoc_sinh.csv", index=False)
+    pd.DataFrame(users).to_csv("hoc-sinh.csv", index=False)
 
 # 2. KHỞI TẠO BIẾN TẠM
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
@@ -46,6 +49,7 @@ def login_page():
     p_in = st.text_input("Mật khẩu:", type="password")
     if st.button("ĐĂNG NHẬP", use_container_width=True):
         users = load_users()
+        # So khớp tài khoản
         user_found = next((u for u in users if str(u['username']) == u_in and str(u['password']) == p_in), None)
         if user_found:
             st.session_state.logged_in = True
