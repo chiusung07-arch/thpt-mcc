@@ -147,9 +147,29 @@ def main_app():
         
         st.write("---")
         st.subheader("📩 Hòm thư Đơn xin nghỉ & Phản ánh")
-        ds_don = [i for i in st.session_state.lich_su if i['Loại'] in ["Xin nghỉ", "Phản ánh"]]
-        if ds_don: st.table(ds_don)
-        else: st.info("Hòm thư hiện tại đang trống.")
+              # --- THAY THẾ KHU VỰC DÒNG 150-152 BẰNG ĐOẠN NÀY ---
+        if st.session_state.lich_su:
+            # Lọc ra các đơn xin nghỉ và phản ánh
+            for i, item in enumerate(st.session_state.lich_su):
+                if item['Loại'] in ["Xin nghỉ", "Phản ánh"]:
+                    # Tạo từng ô đơn riêng biệt
+                    with st.expander(f"📌 {item['Loại']}: {item['Tên']} - {item['Lớp']}"):
+                        st.write(f"**Nội dung:** {item['Nội dung']}")
+                        st.write(f"**Thời gian:** {item['Thời gian']}")
+                        st.write(f"**Trạng thái:** {item.get('Trạng thái', '⏳ Đang chờ')}")
+                        
+                        # Nút bấm Duyệt/Từ chối
+                        c1, c2 = st.columns(2)
+                        with c1:
+                            if st.button(f"✅ Duyệt", key=f"d_{i}"):
+                                item['Trạng thái'] = "✅ Đã đồng ý"
+                                st.rerun()
+                        with c2:
+                            if st.button(f"❌ Từ chối", key=f"tc_{i}"):
+                                item['Trạng thái'] = "❌ Không đồng ý"
+                                st.rerun()
+        else:
+            st.info("Hòm thư hiện tại đang trống.")
 
     # --- GIAO DIỆN QUẢN LÝ BÁN TRÚ ---
     elif user.get('role') == "admin_an":
