@@ -3,7 +3,7 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Hệ thống THPT Mù Cang Chải", layout="centered")
 
-html_final = """
+html_final_auth = """
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -28,61 +28,62 @@ html_final = """
         .robot-bubble { background: white; border: 2px solid var(--primary); padding: 5px 10px; border-radius: 15px; font-size: 11px; margin-bottom: 5px; }
         .robot-img { width: 60px; animation: bounce 2s infinite; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-        .data-box { background: #f0f7ff; padding: 10px; border-radius: 8px; border-left: 4px solid #2196f3; font-size: 13px; }
     </style>
 </head>
 <body>
 <div class="container">
-    <!-- 1. TRANG ĐĂNG NHẬP -->
+    <!-- TRANG ĐĂNG NHẬP -->
     <div id="loginPage" class="page active">
         <div class="header-school">
             <img src="https://wikimedia.org" style="width:40px">
             <h3>XIN CHÀO ĐẾN VỚI <br> TRƯỜNG THPT MÙ CANG CHẢI</h3>
         </div>
-        <div style="padding: 10px 0;">
-            <input type="text" id="u" placeholder="1. Tên tài khoản">
-            <input type="password" id="p" placeholder="2. Mật khẩu">
-            <input type="text" placeholder="3. Mã học sinh">
-            <button onclick="checkLogin()">ĐĂNG NHẬP</button>
-            <p style="text-align: center; font-size: 13px;">
-                <span onclick="goPage('regPage')" style="color:blue; cursor:pointer">4. Đăng ký tài khoản</span> | 
-                <span onclick="goPage('forgotPage')" style="color:gray; cursor:pointer">9. Quên mật khẩu</span>
+        <div style="padding: 20px 0;">
+            <input type="text" id="loginUser" placeholder="Tên tài khoản">
+            <input type="password" id="loginPass" placeholder="Mật khẩu">
+            <button onclick="handleLogin()">ĐĂNG NHẬP</button>
+            <p style="text-align: center; font-size: 13px; margin-top:15px;">
+                Chưa có tài khoản? <span onclick="goPage('regPage')" style="color:blue; cursor:pointer; font-weight:bold;">Đăng ký ngay</span>
             </p>
         </div>
     </div>
 
-    <!-- 2. TRANG ĐĂNG KÝ -->
+    <!-- TRANG ĐĂNG KÝ -->
     <div id="regPage" class="page">
-        <h4 style="color:var(--primary); text-align:center">BẠN PHẢI LÀ HỌC SINH TRƯỜNG THPT MÙ CANG CHẢI</h4>
-        <input type="text" placeholder="2. Tên tài khoản">
-        <input type="text" placeholder="3. Họ và tên học sinh">
-        <select>
-            <option>4. Chọn lớp...</option>
+        <h4 style="color:var(--primary); text-align:center">ĐĂNG KÝ TÀI KHOẢN MỚI</h4>
+        <p style="font-size:12px; text-align:center;">Bạn phải là học sinh trường THPT Mù Cang Chải</p>
+        <input type="text" id="regUser" placeholder="Tên tài khoản (để đăng nhập)">
+        <input type="text" id="regFullName" placeholder="Họ và tên học sinh">
+        <select id="regClass">
+            <option value="">Chọn lớp học...</option>
             <script>
-                for(let i=1;i<=9;i++) document.write(`<option>10A${i}</option>`);
-                for(let i=1;i<=7;i++) document.write(`<option>11A${i}</option>`);
-                for(let i=1;i<=7;i++) document.write(`<option>12A${i}</option>`);
+                const blocks = ["10A", "11A", "12A"];
+                blocks.forEach(b => {
+                    let max = (b === "10A") ? 9 : 7;
+                    for(let i=1; i<=max; i++) document.write(`<option>${b}${i}</option>`);
+                });
             </script>
         </select>
-        <input type="password" placeholder="5. Mật khẩu">
-        <input type="email" placeholder="6. Email (Bắt buộc khôi phục)">
-        <input type="tel" placeholder="7. Số điện thoại">
-        <select><option>8. Học sinh bán trú</option><option>8. Học sinh ngoại trú</option></select>
-        <button onclick="alert('Đăng ký thành công!'); goPage('loginPage')">10. XÁC NHẬN ĐĂNG KÝ</button>
+        <input type="password" id="regPass" placeholder="Mật khẩu">
+        <input type="email" id="regEmail" placeholder="Email (Bắt buộc khôi phục)">
+        <input type="tel" placeholder="Số điện thoại">
+        <select><option>Học sinh bán trú</option><option>Học sinh ngoại trú</option></select>
+        <button onclick="handleRegister()">XÁC NHẬN ĐĂNG KÝ</button>
+        <button style="background:#666" onclick="goPage('loginPage')">Quay lại</button>
     </div>
 
-    <!-- 3. TRANG CHỦ HỌC SINH -->
+    <!-- TRANG CHỦ HỌC SINH -->
     <div id="homeStudent" class="page">
         <h3 id="hiName" style="color:var(--primary); margin-bottom:0">Xin chào!</h3>
         <p style="font-size:13px; color:#666">Chúc bạn một ngày vui vẻ!</p>
         <div class="menu-grid">
-            <div class="menu-item" onclick="alert('Mở Camera chụp lớp học...')"><i class="fa fa-camera"></i><br>1. Điểm danh</div>
-            <div class="menu-item" onclick="goPage('mealPage')"><i class="fa fa-utensils"></i><br>2. Báo cơm</div>
-            <div class="menu-item" onclick="goPage('leavePage')"><i class="fa fa-paper-plane"></i><br>3. Xin nghỉ</div>
-            <div class="menu-item" onclick="goPage('feedbackPage')"><i class="fa fa-comment-dots"></i><br>4. Phản hồi</div>
-            <div class="menu-item" onclick="goPage('mailboxPage')"><i class="fa fa-envelope"></i><br>5. Hòm thư</div>
-            <div class="menu-item" onclick="goPage('profilePage')"><i class="fa fa-user-cog"></i><br>Tài khoản</div>
-            <div class="menu-item" onclick="location.reload()" style="background:#eee"><i class="fa fa-sign-out-alt"></i><br>Đăng xuất</div>
+            <div class="menu-item" onclick="alert('Mở Camera điểm danh...')"><i class="fa fa-camera"></i><br>1. Điểm danh</div>
+            <div class="menu-item"><i class="fa fa-utensils"></i><br>2. Báo cơm</div>
+            <div class="menu-item"><i class="fa fa-paper-plane"></i><br>3. Xin nghỉ</div>
+            <div class="menu-item"><i class="fa fa-comment-dots"></i><br>4. Phản hồi</div>
+            <div class="menu-item"><i class="fa fa-envelope"></i><br>5. Hòm thư</div>
+            <div class="menu-item"><i class="fa fa-user-cog"></i><br>Tài khoản</div>
+            <div class="menu-item" onclick="location.reload()" style="grid-column: span 2; background:#eee"><i class="fa fa-sign-out-alt"></i> Đăng xuất</div>
         </div>
         <div class="robot-box" onclick="askAI()">
             <div class="robot-bubble">Bạn cần tôi giúp gì không?</div>
@@ -90,64 +91,62 @@ html_final = """
         </div>
     </div>
 
-    <!-- 4. TRANG BAN GIÁM HIỆU -->
-    <div id="pageBGH" class="page">
-        <h3 style="color:var(--primary)">QUẢN LÝ NHÀ TRƯỜNG</h3>
-        <p><strong>1. Sĩ số báo cáo:</strong></p>
-        <div id="bghData" class="data-box"><i>Chưa có báo cáo mới...</i></div>
-        <p><strong>2. Phê duyệt & Trả lời:</strong></p>
-        <textarea placeholder="Trả lời thắc mắc học sinh..."></textarea>
-        <button onclick="alert('Đã gửi phản hồi!')">GỬI VÀ XÁC NHẬN</button>
-        <button style="background:#666; margin-top:20px" onclick="location.reload()">ĐĂNG XUẤT</button>
-    </div>
-
-    <!-- 5. TRANG GIÁO VIÊN (Mr Quang) -->
-    <div id="pageGV" class="page">
-        <h3>Chào thầy Mr Quang một ngày tốt đẹp!</h3>
-        <p><strong>1. Nhận điểm danh lớp 12A3:</strong></p>
-        <div class="data-box" style="background:#f9f9f9">Sùng A Chiều - Đã đi học (Hình ảnh) lúc 6:30 9/4/2024</div>
-        <p><strong>2. Gửi báo cáo sĩ số lên BGH:</strong></p>
-        <input type="text" id="sisoInput" placeholder="Ví dụ: Mùa Hà Quang 12A3 47/47 đủ">
-        <button onclick="gvGuiBGH()" style="background:#2e7d32">GỬI BÁO CÁO</button>
-        <button style="background:#666; margin-top:20px" onclick="location.reload()">ĐĂNG XUẤT</button>
-    </div>
-
-    <!-- 6. TRANG BÁO CƠM -->
-    <div id="pageCom" class="page">
-        <h3 style="color:#e67e22">Hãy làm việc cẩn thận nhé bác sạch cơm ngon!</h3>
-        <div class="data-box"><strong>1. Số lượng ăn:</strong> Lớp 12A3 23 bạn đã báo làm 23 xuất</div>
-        <p><strong>2. Thời gian ăn:</strong><br>- Trưa: 11h45-12h30<br>- Chiều: 16h20-17h30</p>
-        <button style="background:#666; margin-top:20px" onclick="location.reload()">ĐĂNG XUẤT</button>
-    </div>
+    <!-- CÁC TRANG ADMIN GIỮ NGUYÊN NHƯ Ý TƯỞNG CŨ -->
+    <div id="pageBGH" class="page"><h3>BGH - QUẢN LÝ NHÀ TRƯỜNG</h3><button onclick="location.reload()">Đăng xuất</button></div>
+    <div id="pageGV" class="page"><h3>Chào thầy Mr Quang!</h3><button onclick="location.reload()">Đăng xuất</button></div>
+    <div id="pageCom" class="page"><h3>Bác sạch cơm ngon!</h3><button onclick="location.reload()">Đăng xuất</button></div>
 </div>
 
 <script>
     function goPage(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        if(id === 'pageBGH') {
-            const d = localStorage.getItem('siso_live');
-            if(d) document.getElementById('bghData').innerHTML = d;
+    }
+
+    // XỬ LÝ ĐĂNG KÝ
+    function handleRegister() {
+        const user = document.getElementById('regUser').value;
+        const name = document.getElementById('regFullName').value;
+        const pass = document.getElementById('regPass').value;
+        const mail = document.getElementById('regEmail').value;
+
+        if(!user || !pass || !name || !mail) return alert('Vui lòng nhập đầy đủ thông tin bắt buộc!');
+
+        // Lưu thông tin vào localStorage (giả lập database)
+        const userData = { username: user, password: pass, fullName: name };
+        localStorage.setItem('user_' + user, JSON.stringify(userData));
+
+        alert('Đăng ký thành công! Hãy dùng tài khoản này để đăng nhập.');
+        goPage('loginPage');
+    }
+
+    // XỬ LÝ ĐĂNG NHẬP
+    function handleLogin() {
+        const user = document.getElementById('loginUser').value;
+        const pass = document.getElementById('loginPass').value;
+
+        // 1. Kiểm tra 3 tài khoản Admin cố định
+        if(user==='BGH THPTMCC2025' && pass==='THPT1983@') return goPage('pageBGH');
+        if(user==='muahaquangdz' && pass==='Mrquang@123') return goPage('pageGV');
+        if(user==='Baocomngon' && pass==='ankhongvanan') return goPage('pageCom');
+
+        // 2. Kiểm tra tài khoản học sinh đã đăng ký
+        const storedUser = localStorage.getItem('user_' + user);
+        if(storedUser) {
+            const data = JSON.parse(storedUser);
+            if(data.password === pass) {
+                document.getElementById('hiName').innerText = "Xin chào " + data.fullName + "!";
+                return goPage('homeStudent');
+            }
         }
+
+        alert('Tài khoản hoặc mật khẩu không chính xác. Vui lòng đăng ký nếu chưa có tài khoản!');
     }
-    function checkLogin() {
-        const user = document.getElementById('u').value;
-        const pass = document.getElementById('p').value;
-        if(user==='BGH THPTMCC2025' && pass==='THPT1983@') goPage('pageBGH');
-        else if(user==='muahaquangdz' && pass==='Mrquang@123') goPage('pageGV');
-        else if(user==='Baocomngon' && pass==='ankhongvanan') goPage('pageCom');
-        else { document.getElementById('hiName').innerText = "Xin chào " + (user||"Học sinh") + "!"; goPage('homeStudent'); }
-    }
-    function gvGuiBGH() {
-        const val = document.getElementById('sisoInput').value;
-        if(!val) return alert('Vui lòng nhập sĩ số!');
-        localStorage.setItem('siso_live', val + " <br><small>Cập nhật: " + new Date().toLocaleTimeString() + "</small>");
-        alert('Đã gửi báo cáo thành công!');
-    }
+
     function askAI() { prompt("Bạn cần trợ lý giúp gì?"); alert("Ai chưa thể sử dụng chính thức"); }
 </script>
 </body>
 </html>
 """
 
-components.html(html_final, height=850, scrolling=True)
+components.html(html_final_auth, height=850, scrolling=True)
