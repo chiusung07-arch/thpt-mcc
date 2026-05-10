@@ -1,181 +1,134 @@
 import streamlit as st
-import streamlit.components.v1 as components
 
+# --- CẤU HÌNH GIAO DIỆN CHUẨN APP ---
 st.set_page_config(page_title="Hệ thống THPT Mù Cang Chải", layout="centered")
 
-html_code = """
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cloudflare.com">
+# CSS ĐỂ GIAO DIỆN "RA TRÒ" (Nút to, màu sắc đúng chuẩn, tràn màn hình)
+st.markdown("""
     <style>
-        :root { --primary: #d32f2f; --bg: #f4f4f4; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); }
-        .container { max-width: 450px; margin: auto; min-height: 100vh; background: white; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-        .page { display: none; padding: 20px; animation: fadeIn 0.3s; }
-        .active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        .header-school { 
-            text-align: center; background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://vnecdn.net');
-            background-size: cover; padding: 30px 20px; color: white; border-radius: 0 0 20px 20px;
-        }
-        input, select, textarea, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
-        button { background: var(--primary); color: white; font-weight: bold; border: none; cursor: pointer; }
-        .box-info { background: #f9f9f9; padding: 10px; border-radius: 8px; margin: 10px 0; border-left: 4px solid var(--primary); font-size: 13px; }
-        
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .menu-item { background: #fff5f5; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #ffebee; cursor: pointer; }
-        .menu-item i { font-size: 20px; color: var(--primary); margin-bottom: 5px; }
-
-        .robot-box { position: fixed; bottom: 20px; right: 15px; text-align: center; cursor: pointer; z-index: 100; }
-        .robot-bubble { background: white; border: 2px solid var(--primary); padding: 5px 10px; border-radius: 15px; font-size: 11px; margin-bottom: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        .robot-img { width: 60px; animation: float 3s infinite; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    .stApp { background-color: #f0f2f5; }
+    .stButton>button { 
+        width: 100%; border-radius: 12px; height: 4em; 
+        font-weight: bold; font-size: 16px; background-color: #d32f2f; color: white;
+        border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .stTextInput>div>div>input { border-radius: 10px; height: 3.5em; }
+    .school-header {
+        text-align: center; background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://vnecdn.net');
+        background-size: cover; padding: 40px 20px; color: white; border-radius: 0 0 25px 25px; margin-bottom: 20px;
+    }
+    .robot-chat {
+        position: fixed; bottom: 20px; right: 20px; text-align: center; z-index: 1000;
+    }
     </style>
-</head>
-<body>
-<div class="container">
+    """, unsafe_allow_html=True)
 
-    <!-- 1. TRANG ĐĂNG NHẬP -->
-    <div id="loginPage" class="page active">
-        <div class="header-school">
-            <img src="https://wikimedia.org" style="width:40px; margin-bottom:5px">
-            <h3 style="margin:0">Xin chào đến với <br> Trường THPT Mù Cang Chải</h3>
-        </div>
-        <div style="padding: 10px 0;">
-            <input type="text" id="userIn" placeholder="1. Tên tài khoản">
-            <input type="password" id="passIn" placeholder="2. Mật khẩu">
-            <input type="text" placeholder="3. Mã học sinh">
-            <button onclick="handleLogin()">ĐĂNG NHẬP</button>
-            <p style="text-align: center; font-size: 13px; margin-top: 15px;">
-                <span onclick="goPage('regPage')" style="color:blue; cursor:pointer">4. Mục đăng ký tài khoản</span>
-            </p>
-        </div>
-    </div>
+# --- QUẢN LÝ CHUYỂN TRANG ---
+if 'page' not in st.session_state: st.session_state.page = 'login'
+if 'user_name' not in st.session_state: st.session_state.user_name = ""
 
-    <!-- TRANG 1: BAN GIÁM HIỆU -->
-    <div id="pageBGH" class="page">
-        <h3>QUẢN LÝ NHÀ TRƯỜNG VÀ TIẾP NHẬN PHẢN ÁNH</h3>
-        <div class="box-info"><strong>1. Sĩ số báo lại:</strong><br><div id="bghData"><i>(Đang chờ báo cáo...)</i></div></div>
-        <textarea placeholder="2. Trả lời thắc mắc..."></textarea>
-        <button onclick="alert('Đã gửi phản hồi thành công!')">Ô gửi</button>
-        <div class="box-info">3. Sự kiện:</div>
-        <input type="text" placeholder="Ô ghi sự kiện...">
-        <button onclick="alert('Đã gửi thông báo!')">Gửi</button>
-        <button onclick="location.reload()" style="background:#666">Đăng xuất</button>
-    </div>
+def switch_page(p):
+    st.session_state.page = p
+    st.rerun()
 
-    <!-- TRANG 2: GIÁO VIÊN (Mr Quang) -->
-    <div id="pageGV" class="page">
-        <h3>CHÀO THẦY MR QUANG MỘT NGÀY TỐT ĐẸP</h3>
-        <div class="box-info">1. Nhận điểm danh lớp 12A3: Sùng A Chiều đã đi học (Hình ảnh) 6:30 9/4/2024</div>
-        <p><strong>2. Thông báo cho lớp:</strong></p>
-        <textarea placeholder="Ô nhập dữ liệu gửi..."></textarea>
-        <button onclick="alert('Đã gửi xong!')">Gửi</button>
-        <p><strong>Báo cáo sĩ số lên BGH:</strong></p>
-        <input type="text" id="gvSiso" placeholder="Nhập: Mùa Hà Quang 12A3 47/47 đủ">
-        <button onclick="gvGuiBGH()" style="background:green">GỬI SĨ SỐ</button>
-        <button onclick="location.reload()" style="background:#666; margin-top:20px">Đăng xuất</button>
-    </div>
+# --- 1. TRANG ĐĂNG NHẬP (TRANG ĐẦU TIÊN) ---
+if st.session_state.page == 'login':
+    st.markdown('<div class="school-header"><img src="https://wikimedia.org" width="60"><br><h1>Xin chào đến với Trường THPT Mù Cang Chải</h1></div>', unsafe_allow_html=True)
+    
+    u = st.text_input("1. Tên tài khoản", key="u1")
+    p = st.text_input("2. Mật khẩu", type="password", key="p1")
+    m = st.text_input("3. Mã học sinh", key="m1")
+    
+    if st.button("ĐĂNG NHẬP"):
+        if u == 'BGH THPTMCC2025' and p == 'THPT1983@': switch_page('bgh')
+        elif u == 'muahaquangdz' and p == 'Mrquang@123': switch_page('giaovien')
+        elif u == 'Baocomngon' and p == 'ankhongvanan': switch_page('baocom_admin')
+        else:
+            st.session_state.user_name = u
+            switch_page('home_hs')
 
-    <!-- TRANG 3: QUẢN LÝ BÁO CƠM -->
-    <div id="pageBC" class="page">
-        <h3 style="color:#e67e22">HÃY LÀM VIỆC CẨN THẬN NHÉ BÁC SẠCH CƠM NGON</h3>
-        <div class="box-info">1. Số lượng ăn hôm nay: Lớp 12A3 23 bạn đã báo làm 23 xuất</div>
-        <p><strong>2. Thời gian ăn:</strong><br>Trưa: 11h45-12h30<br>Chiều: 16h20-17h30</p>
-        <button onclick="location.reload()" style="background:#666">Đăng xuất</button>
-    </div>
+    if st.button("4. Mục đăng ký tài khoản"): switch_page('register')
 
-    <!-- TRANG CHỦ HỌC SINH -->
-    <div id="homeHS" class="page">
-        <h3 id="hiHS" style="color:var(--primary); margin:0">Xin chào!</h3>
-        <p style="font-size:13px">Chúc bạn một ngày vui vẻ!</p>
-        <div class="menu-grid">
-            <div class="menu-item" onclick="alert('Chụp ảnh xung quanh lớp...')"><i class="fa fa-camera"></i><br>1. Điểm danh</div>
-            <div class="menu-item"><i class="fa fa-utensils"></i><br>2. Báo cơm</div>
-            <div class="menu-item"><i class="fa fa-file-alt"></i><br>3. Xin nghỉ</div>
-            <div class="menu-item"><i class="fa fa-comment-dots"></i><br>4. Phản hồi</div>
-            <div class="menu-item"><i class="fa fa-envelope"></i><br>5. Hòm thư</div>
-            <div class="menu-item" onclick="goPage('profHS')"><i class="fa fa-user-circle"></i><br>Tài khoản</div>
-            <div class="menu-item" onclick="location.reload()" style="grid-column: span 2; background:#eee"><i class="fa fa-sign-out-alt"></i> Đăng xuất</div>
-        </div>
-        <div class="robot-box" onclick="talkAI()"><div class="robot-bubble">Bạn cần tôi giúp gì không?</div><img src="https://flaticon.com" class="robot-img"></div>
-    </div>
+# --- 2. TRANG ĐĂNG KÝ ---
+elif st.session_state.page == 'register':
+    st.subheader("BẠN PHẢI LÀ HỌC SINH TRƯỜNG THPT MÙ CANG CHẢI")
+    st.text_input("2. Tên tài khoản")
+    st.text_input("3. Họ và tên học sinh")
+    st.selectbox("4. Lớp", [f"10A{i}" for i in range(1,10)] + [f"11A{i}" for i in range(1,8)] + [f"12A{i}" for i in range(1,8)])
+    st.text_input("5. Mật khẩu", type="password")
+    st.text_input("6. Email (bắt buộc)")
+    st.text_input("7. Số điện thoại")
+    st.selectbox("8. Loại hình học sinh", ["Học sinh bán trú", "Học sinh ngoại trú"])
+    
+    if st.button("10. XÁC NHẬN ĐĂNG KÝ"):
+        st.success("Đăng ký thành công!")
+        time.sleep(1)
+        switch_page('login')
+    if st.button("Quay lại"): switch_page('login')
 
-    <!-- TRANG ĐĂNG KÝ -->
-    <div id="regPage" class="page">
-        <h4 style="text-align:center; color:var(--primary)">BẠN PHẢI LÀ HỌC SINH TRƯỜNG THPT MÙ CANG CHẢI</h4>
-        <input type="text" id="regU" placeholder="2. Tên tài khoản">
-        <input type="text" id="regN" placeholder="3. Họ tên">
-        <input type="password" id="regP" placeholder="5. Mật khẩu">
-        <button onclick="handleReg()">XÁC NHẬN ĐĂNG KÝ</button>
-        <button onclick="goPage('loginPage')" style="background:#666">Quay lại</button>
-    </div>
+# --- 3. TRANG CHỦ HỌC SINH ---
+elif st.session_state.page == 'home_hs':
+    st.markdown(f"<h2 style='color:#d32f2f;'>Xin chào {st.session_state.user_name} và chúc bạn có một ngày vui vẻ</h2>", unsafe_allow_html=True)
+    
+    if st.button("1. Mục điểm danh"):
+        st.warning("Yêu cầu chụp bất cứ chỗ nào xung quanh lớp học và gửi cho giáo viên")
+    if st.button("2. Mục báo cơm"): switch_page('hs_com')
+    if st.button("3. Mục xin nghỉ"): switch_page('hs_nghi')
+    if st.button("4. Phản hồi ý kiến"): switch_page('hs_phanhoi')
+    if st.button("5. Hòm thư"): switch_page('hs_homthu')
+    if st.button("Thông tin tài khoản"): switch_page('hs_info')
+    if st.button("Đăng xuất"): switch_page('login')
 
-</div>
+    # Trợ lý ảo Robot
+    st.markdown('---')
+    st.markdown('<div style="text-align:center;"><img src="https://flaticon.com" width="80"><br><b>Bạn cần tôi giúp gì không?</b></div>', unsafe_allow_html=True)
+    chat = st.text_input("Nhập tin nhắn vào đây...")
+    if chat: st.error("Ai chưa thể sử dụng chính thức")
 
-<script>
-    function goPage(id) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        if(id==='pageBGH'){
-            const d = localStorage.getItem('siso_tu_gv');
-            if(d) document.getElementById('bghData').innerText = d;
-        }
-    }
+# --- 4. TRANG BAN GIÁM HIỆU ---
+elif st.session_state.page == 'bgh':
+    st.header("Quản lý nhà trường và tiếp nhận phản ánh")
+    st.info("1. Sĩ số báo lại: Mùa Hà Quang 12A3 47/47 đủ")
+    st.text_area("2. Mục phê duyệt và trả lời phản ánh học sinh")
+    if st.button("Gửi"): st.success("Đã gửi thành công")
+    st.text_input("3. Sự kiện gửi thông báo đến hòm thư học sinh")
+    if st.button("Đăng xuất"): switch_page('login')
 
-    function handleLogin() {
-        const u = document.getElementById('userIn').value;
-        const p = document.getElementById('passIn').value;
+# --- 5. TRANG GIÁO VIÊN ---
+elif st.session_state.page == 'giaovien':
+    st.header("Chào thầy Mr Quang một ngày tốt đẹp")
+    st.write("1. Nhận điểm danh lớp 12A3 (VD: Sùng A Chiều đã đi học 6:30 9/4/2024)")
+    st.text_area("2. Thông báo đến học sinh của lớp gửi tới hòm thư")
+    if st.button("Gửi thông báo"): st.success("Đã gửi xong")
+    if st.button("Đăng xuất"): switch_page('login')
 
-        // KIỂM TRA CHÍNH XÁC 3 TÀI KHOẢN ADMIN NHƯ BẠN YÊU CẦU
-        if(u === 'BGH THPTMCC2025' && p === 'THPT1983@') {
-            goPage('pageBGH');
-        } 
-        else if(u === 'muahaquangdz' && p === 'Mrquang@123') {
-            goPage('pageGV');
-        } 
-        else if(u === 'Baocomngon' && p === 'ankhongvanan') {
-            goPage('pageBC');
-        } 
-        else {
-            // Kiểm tra tài khoản học sinh đã đăng ký
-            const stored = localStorage.getItem('user_'+u);
-            if(stored && JSON.parse(stored).pass === p) {
-                document.getElementById('hiHS').innerText = "Xin chào " + JSON.parse(stored).name + "!";
-                goPage('homeHS');
-            } else {
-                alert('Sai tài khoản hoặc mật khẩu!');
-            }
-        }
-    }
+# --- 6. TRANG BÁO CƠM ADMIN ---
+elif st.session_state.page == 'baocom_admin':
+    st.header("Hãy làm việc cẩn thận nhé bác sạch cơm ngon")
+    st.write("1. Số lượng ăn hôm nay (Lớp 12A3 23 bạn báo làm 23 suất)")
+    st.write("2. Thời gian ăn: Trưa (11:45-12:30) - Chiều (16:20-17:30)")
+    if st.button("Đăng xuất"): switch_page('login')
 
-    function handleReg() {
-        const u = document.getElementById('regU').value;
-        const n = document.getElementById('regN').value;
-        const p = document.getElementById('regP').value;
-        if(u && p) {
-            localStorage.setItem('user_'+u, JSON.stringify({pass: p, name: n}));
-            alert('Đăng ký thành công!');
-            goPage('loginPage');
-        }
-    }
+# --- TRANG THÔNG TIN TÀI KHOẢN (CCCD) ---
+elif st.session_state.page == 'hs_info':
+    st.subheader("Thông tin tài khoản")
+    st.write(f"Học sinh: {st.session_state.user_name}")
+    st.text_input("Nhập CCCD (bắt buộc)")
+    st.password_input("Mật khẩu hiện tại")
+    st.password_input("Mật khẩu mới")
+    if st.button("Xác nhận đổi mật khẩu"): st.success("Thành công")
+    if st.button("Quay lại"): switch_page('home_hs')
 
-    function gvGuiBGH() {
-        localStorage.setItem('siso_tu_gv', document.getElementById('gvSiso').value);
-        alert('Đã gửi báo cáo lên BGH!');
-    }
+# --- CÁC TRANG CON KHÁC ---
+elif st.session_state.page == 'hs_com':
+    st.subheader("Mục báo cơm")
+    if st.button("Báo cơm cho tôi hôm nay"): st.success("Đã báo cơm")
+    st.checkbox("Xin nghỉ bữa trưa")
+    st.checkbox("Xin nghỉ bữa tối")
+    if st.button("Quay lại"): switch_page('home_hs')
 
-    function talkAI() {
-        const q = prompt("Bạn cần tôi giúp gì?");
-        if(q) alert("Ai chưa thể sử dụng chính thức");
-    }
-</script>
-</body>
-</html>
-"""
-
-components.html(html_code, height=850, scrolling=True)
+elif st.session_state.page == 'hs_nghi':
+    st.subheader("Mục xin nghỉ")
+    st.text_area("Lý do xin nghỉ (Phải chính đáng)")
+    if st.button("Gửi đơn"): st.info("Đang chờ thầy giáo chủ nhiệm duyệt 5 phút có kết quả...")
+    if st.button("Quay lại"): switch_page('home_hs')
