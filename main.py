@@ -1,111 +1,144 @@
-import streamlit as st
-from datetime import datetime
-import pandas as pd
-import os
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống THPT Mù Cang Chải</title>
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <style>
+        :root { --primary: #d32f2f; --secondary: #f44336; --bg: #f5f5f5; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--bg); }
+        .container { max-width: 500px; margin: auto; min-height: 100vh; background: white; position: relative; overflow-x: hidden; }
+        
+        /* Giao diện Đăng nhập & Trường học */
+        .page { display: none; padding: 20px; animation: fadeIn 0.5s; }
+        .active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-# --- CẤU HÌNH TRANG ---
-st.set_page_config(page_title="THPT Mù Cang Chải", page_icon="🏫", layout="wide")
+        .header-school { text-align: center; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://vnecdn.net'); background-size: cover; padding: 40px 20px; color: white; border-radius: 0 0 20px 20px; }
+        .flag { width: 60px; margin-bottom: 10px; }
+        
+        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        /* Dashboard học sinh */
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .menu-item { background: #fff5f5; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #ffebee; cursor: pointer; transition: 0.3s; }
+        .menu-item i { font-size: 24px; color: var(--primary); margin-bottom: 8px; }
+        
+        /* Robot trợ lý */
+        .robot-box { position: fixed; bottom: 20px; right: 20px; text-align: center; cursor: pointer; z-index: 100; }
+        .robot-bubble { background: white; border: 2px solid var(--primary); padding: 5px 10px; border-radius: 15px; font-size: 12px; margin-bottom: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .robot-img { width: 60px; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2)); }
+    </style>
+</head>
+<body>
 
-# 1. HÀM XỬ LÝ DỮ LIỆU (Lưu vĩnh viễn vào CSV)
-def load_users():
-    if os.path.exists("hoc-sinh.csv"):
-        try:
-            return pd.read_csv("hoc-sinh.csv").to_dict('records')
-        except:
-            return []
-    return []
+<div class="container">
+    <!-- TRANG ĐĂNG NHẬP -->
+    <div id="loginPage" class="page active">
+        <div class="header-school">
+            <img src="https://wikimedia.org" class="flag">
+            <h2>XIN CHÀO ĐẾN VỚI TRƯỜNG THPT MÙ CANG CHẢI</h2>
+        </div>
+        <div style="padding-top: 20px;">
+            <input type="text" id="user" placeholder="Tên tài khoản">
+            <input type="password" id="pass" placeholder="Mật khẩu">
+            <input type="text" placeholder="Mã học sinh">
+            <button onclick="handleLogin()">ĐĂNG NHẬP</button>
+            <p style="text-align: center; font-size: 14px;">
+                <a href="#" onclick="showPage('registerPage')">Đăng ký tài khoản</a> | 
+                <a href="#" onclick="showPage('forgotPassPage')">Quên mật khẩu</a>
+            </p>
+        </div>
+    </div>
 
-def save_user_to_csv(new_user):
-    users = load_users()
-    users.append(new_user)
-    pd.DataFrame(users).to_csv("hoc-sinh.csv", index=False)
+    <!-- TRANG ĐĂNG KÝ -->
+    <div id="registerPage" class="page">
+        <h3 style="color: var(--primary); text-align: center;">BẠN PHẢI LÀ HỌC SINH TRƯỜNG THPT MÙ CANG CHẢI</h3>
+        <input type="text" placeholder="Tên tài khoản">
+        <input type="text" placeholder="Họ và tên học sinh">
+        <select id="lop">
+            <script>
+                for(let i=1; i<=9; i++) document.write(`<option>Lớp 10A${i}</option>`);
+                for(let i=1; i<=7; i++) document.write(`<option>Lớp 11A${i}</option>`);
+                for(let i=1; i<=7; i++) document.write(`<option>Lớp 12A${i}</option>`);
+            </script>
+        </select>
+        <input type="password" placeholder="Mật khẩu">
+        <input type="email" placeholder="Email (Bắt buộc khôi phục)">
+        <input type="tel" placeholder="Số điện thoại">
+        <select><option>Học sinh bán trú</option><option>Học sinh ngoại trú</option></select>
+        <button onclick="alert('Đăng ký thành công!'); showPage('loginPage')">XÁC NHẬN ĐĂNG KÝ</button>
+        <button style="background: #666;" onclick="showPage('loginPage')">QUAY LẠI</button>
+    </div>
 
-# 2. KHỞI TẠO BIẾN TẠM
-if 'logged_in' not in st.session_state: st.session_state.logged_in = False
-if 'page' not in st.session_state: st.session_state.page = "login"
-if 'lich_su' not in st.session_state: st.session_state.lich_su = []
+    <!-- TRANG CHỦ HỌC SINH -->
+    <div id="homeStudent" class="page">
+        <div style="display:flex; justify-content: space-between; align-items: center;">
+            <h3 id="welcomeName">Xin chào!</h3>
+            <span onclick="showPage('profilePage')" style="cursor:pointer"><i class="fa fa-user-circle"></i> Tài khoản</span>
+        </div>
+        <p style="color: #666;">Chúc bạn một ngày vui vẻ!</p>
+        
+        <div class="menu-grid">
+            <div class="menu-item" onclick="alert('Mở Camera điểm danh...')"><i class="fa fa-camera"></i><br>Điểm danh</div>
+            <div class="menu-item" onclick="showPage('mealPage')"><i class="fa fa-utensils"></i><br>Báo cơm</div>
+            <div class="menu-item" onclick="showPage('leavePage')"><i class="fa fa-envelope-open-text"></i><br>Xin nghỉ</div>
+            <div class="menu-item" onclick="showPage('feedbackPage')"><i class="fa fa-comment-dots"></i><br>Phản hồi BGH</div>
+            <div class="menu-item" onclick="showPage('mailboxPage')"><i class="fa fa-inbox"></i><br>Hòm thư</div>
+            <div class="menu-item" onclick="showPage('loginPage')"><i class="fa fa-sign-out-alt"></i><br>Đăng xuất</div>
+        </div>
+    </div>
 
-# 3. GIAO DIỆN ĐĂNG KÝ
-def registration_page():
-    st.title("📝 ĐĂNG KÝ HỌC SINH MỚI")
-    with st.form("reg_form"):
-        name = st.text_input("Họ và tên học sinh:")
-        classes = ([f"10A{i}" for i in range(1, 10)] + [f"11A{i}" for i in range(1, 8)] + [f"12A{i}" for i in range(1, 8)])
-        lop = st.selectbox("Lớp học:", classes)
-        user_id = st.text_input("Tên tài khoản:")
-        pwd = st.text_input("Mật khẩu:", type="password")
-        if st.form_submit_button("Xác nhận đăng ký"):
-            if user_id and pwd and name:
-                save_user_to_csv({"username": user_id, "password": pwd, "name": name, "class": lop, "role": "student"})
-                st.success("✅ Đăng ký thành công! Hãy quay lại đăng nhập.")
-            else: st.error("Vui lòng điền đủ thông tin!")
-    if st.button("Quay lại Đăng nhập"):
-        st.session_state.page = "login"; st.rerun()
+    <!-- TRANG CHỦ BAN GIÁM HIỆU -->
+    <div id="homeBGH" class="page">
+        <h3>QUẢN LÝ NHÀ TRƯỜNG & TIẾP NHẬN PHẢN ÁNH</h3>
+        <div class="menu-item" style="text-align: left; margin-bottom: 10px;">
+            <strong>Sĩ số hôm nay:</strong><br>
+            - 12A3: 47/47 (Đủ)<br>
+            - 12A1: 45/46 (Vắng 1)
+        </div>
+        <textarea placeholder="Trả lời thắc mắc học sinh..."></textarea>
+        <button onclick="alert('Đã gửi phản hồi!')">GỬI PHẢN HỒI</button>
+        <button style="background: #666;" onclick="showPage('loginPage')">ĐĂNG XUẤT</button>
+    </div>
 
-# 4. GIAO DIỆN ĐĂNG NHẬP
-def login_page():
-    st.title("🏫 TRƯỜNG THPT MÙ CANG CHẢI")
-    u_in = st.text_input("Tên tài khoản:")
-    p_in = st.text_input("Mật khẩu:", type="password")
-    if st.button("ĐĂNG NHẬP", use_container_width=True):
-        users = load_users()
-        # So khớp tài khoản
-        user_found = next((u for u in users if str(u['username']) == u_in and str(u['password']) == p_in), None)
-        if user_found:
-            st.session_state.logged_in = True
-            st.session_state.user_info = user_found
-            st.rerun()
-        else: st.error("Sai tài khoản hoặc mật khẩu!")
-    if st.button("Chưa có tài khoản? Đăng ký ngay"):
-        st.session_state.page = "register"; st.rerun()
+    <!-- TRỢ LÝ ROBOT -->
+    <div class="robot-box" id="robotAI" style="display:none;">
+        <div class="robot-bubble">Bạn cần tôi giúp gì không?</div>
+        <img src="https://flaticon.com" class="robot-img" onclick="askAI()">
+    </div>
+</div>
 
-# 5. GIAO DIỆN CHÍNH (DASHBOARD)
-def main_app():
-    user = st.session_state.user_info
-    st.sidebar.title(f"👤 {user['name']}")
-    if 'class' in user: st.sidebar.info(f"Lớp: {user['class']}")
-    if st.sidebar.button("ĐĂNG XUẤT"):
-        st.session_state.logged_in = False; st.rerun()
+<script>
+    function showPage(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        // Chỉ hiện robot ở trang chủ học sinh
+        document.getElementById('robotAI').style.display = (id === 'homeStudent') ? 'block' : 'none';
+    }
 
-    if user.get('role') == "student":
-        st.title("📍 CỔNG THÔNG TIN HỌC SINH")
-        t1, t2, t3, t4 = st.tabs(["Điểm danh", "Báo ăn", "Xin nghỉ", "Phản ánh"])
-        with t1:
-            if st.button("XÁC NHẬN CÓ MẶT"):
-                st.session_state.lich_su.append({"Loại": "Điểm danh", "Lớp": user['class'], "Tên": user['name'], "Nội dung": "Có mặt", "Thời gian": datetime.now().strftime("%H:%M %d/%m"), "Trạng thái": "Thành công"})
-                st.success("✅ Đã điểm danh!")
-        with t2:
-            thu = st.selectbox("Chọn thứ:", ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6"])
-            chon = st.radio("Chọn:", ["Đăng ký ăn", "Xin nghỉ ăn"])
-            if st.button("Gửi báo cơm"):
-                st.session_state.lich_su.append({"Loại": "Báo ăn", "Lớp": user['class'], "Tên": user['name'], "Nội dung": f"{thu}: {chon}", "Thời gian": datetime.now().strftime("%H:%M %d/%m"), "Trạng thái": "Đã báo"})
-                st.success("🍱 Đã gửi!")
-        with t3:
-            ly_do = st.text_area("Lý do nghỉ:")
-            if st.button("Gửi đơn"):
-                st.session_state.lich_su.append({"Loại": "Xin nghỉ", "Lớp": user['class'], "Tên": user['name'], "Nội dung": ly_do, "Thời gian": datetime.now().strftime("%H:%M %d/%m"), "Trạng thái": "⏳ Chờ duyệt"})
-                st.info("📩 Đơn đã gửi!")
-        with t4:
-            yk = st.text_area("Ý kiến:")
-            if st.button("Gửi phản ánh"):
-                st.session_state.lich_su.append({"Loại": "Phản ánh", "Lớp": user['class'], "Tên": user['name'], "Nội dung": yk, "Thời gian": datetime.now().strftime("%H:%M %d/%m"), "Trạng thái": "Đã gửi"})
-                st.success("📩 Đã ghi nhận!")
+    function handleLogin() {
+        const u = document.getElementById('user').value;
+        const p = document.getElementById('pass').value;
 
-    elif user.get('role') == "admin_gv":
-        st.title("📂 QUẢN LÝ GIÁO VIÊN")
-        classes_list = ([f"10A{i}" for i in range(1, 10)] + [f"11A{i}" for i in range(1, 8)] + [f"12A{i}" for i in range(1, 8)])
-        chon_lop = st.selectbox("Lọc lớp:", classes_list)
-        ds = [i for i in st.session_state.lich_su if i['Loại'] == "Điểm danh" and i['Lớp'] == chon_lop]
-        st.table(ds if ds else [])
-        st.subheader("Hòm thư đơn từ")
-        st.table([i for i in st.session_state.lich_su if i['Loại'] in ["Xin nghỉ", "Phản ánh"]])
+        if(u === 'BGH THPTMCC2025' && p === 'THPT1983@') {
+            showPage('homeBGH');
+        } else if(u === 'muahaquangdz' && p === 'Mrquang@123') {
+            alert('Chào thầy Mr Quang!');
+            showPage('homeStudent'); // Bạn có thể tạo thêm trang riêng cho GV
+        } else {
+            document.getElementById('welcomeName').innerText = "Xin chào " + (u || "Học sinh") + "!";
+            showPage('homeStudent');
+        }
+    }
 
-    elif user.get('role') == "admin_an":
-        st.title("🍱 QUẢN LÝ BÁN TRÚ")
-        st.table([i for i in st.session_state.lich_su if i['Loại'] == "Báo ăn"])
+    function askAI() {
+        prompt("Tôi có thể giúp gì cho bạn?");
+        alert("Ai chưa thể sử dụng chính thức");
+    }
+</script>
 
-# ĐIỀU HƯỚNG
-if not st.session_state.logged_in:
-    if st.session_state.page == "login": login_page()
-    else: registration_page()
-else: main_app()
+</body>
+</html>
