@@ -25,40 +25,50 @@ if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 if 'page' not in st.session_state: st.session_state.page = "login"
 if 'lich_su' not in st.session_state: st.session_state.lich_su = []
 
-# 3. GIAO DIỆN ĐĂNG KÝ
+# 3. TRANG ĐĂNG KÝ
 def registration_page():
     st.title("📝 ĐĂNG KÝ HỌC SINH MỚI")
     with st.form("reg_form"):
         name = st.text_input("Họ và tên học sinh:")
-        # Tạo danh sách lớp từ 10A1-12A7
         classes = ([f"10A{i}" for i in range(1, 10)] + [f"11A{i}" for i in range(1, 8)] + [f"12A{i}" for i in range(1, 8)])
         lop = st.selectbox("Lớp học:", classes)
         user_id = st.text_input("Tên tài khoản (Mã HS):")
         pwd = st.text_input("Mật khẩu:", type="password")
         if st.form_submit_button("Xác nhận đăng ký"):
             if user_id and pwd and name:
-                save_user_to_csv({"username": user_id, "password": pwd, "name": name, "class": lop, "role": "student"})
+                save_user_to_csv({"username": user_id, "password": pwd, "name": name, "class": lop, "role": "admin_gv" if "admin" in user_id else "student"})
                 st.success("✅ Đăng ký thành công! Hãy quay lại đăng nhập.")
             else: st.error("Vui lòng điền đủ thông tin!")
     if st.button("Quay lại Đăng nhập"):
         st.session_state.page = "login"; st.rerun()
 
-# 4. GIAO DIỆN ĐĂNG NHẬP
+# 4. TRANG ĐĂNG NHẬP
 def login_page():
     st.markdown("<h1 style='text-align: center; color: #1E88E5;'>TRƯỜNG THPT MÙ CANG CHẢI</h1>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center;'>Hệ thống Quản lý và Hỗ trợ Bán trú</h3>", unsafe_allow_html=True)
     st.write("---")
     col1, col2, col3 = st.columns([1,2,1])
     with col2:
         u_in = st.text_input("Tên tài khoản:")
         p_in = st.text_input("Mật khẩu:", type="password")
         if st.button("ĐĂNG NHẬP", use_container_width=True):
-            users = load_users()
-            user_found = next((u for u in users if str(u['username']) == u_in and str(u['password']) == p_in), None)
-            if user_found:
+            # Tài khoản cố định cho Admin
+            if u_in == "thptmcc_admin" and p_in == "giaovien2024":
                 st.session_state.logged_in = True
-                st.session_state.user_info = user_found
+                st.session_state.user_info = {"name": "Ban Giám Hiệu Nhà Trường", "role": "admin_gv"}
                 st.rerun()
-            else: st.error("Sai tài khoản hoặc mật khẩu!")
+            elif u_in == "bantru_mcc" and p_in == "comngon2024":
+                st.session_state.logged_in = True
+                st.session_state.user_info = {"name": "Phòng Quản Lý Bán Trú", "role": "admin_an"}
+                st.rerun()
+            else:
+                users = load_users()
+                user_found = next((u for u in users if str(u['username']) == u_in and str(u['password']) == p_in), None)
+                if user_found:
+                    st.session_state.logged_in = True
+                    st.session_state.user_info = user_found
+                    st.rerun()
+                else: st.error("Sai tài khoản hoặc mật khẩu!")
         if st.button("Chưa có tài khoản? Đăng ký ngay", use_container_width=True):
             st.session_state.page = "register"; st.rerun()
 
@@ -96,7 +106,7 @@ def main_app():
                     "Loại": "Báo ăn", "Lớp": user['class'], "Tên": user['name'], 
                     "Nội dung": f"{thu}: {chon}", "Thời gian": datetime.now().strftime("%H:%M %d/%m")
                 })
-                st.success("🍱 Đã ghi nhận thông tin báo cơm thành công!")
+                st.success("🍱 Đã báo cơm thành công!")
 
         with t3:
             st.subheader("📝 Đơn xin nghỉ Online")
@@ -108,29 +118,29 @@ def main_app():
                         "Nội dung": ly_do, "Thời gian": datetime.now().strftime("%H:%M %d/%m"), 
                         "Trạng thái": "⏳ Chờ phê duyệt"
                     })
-                    st.success("✅ Đã gửi. Chờ phê duyệt!")
+                    st.success("✅ Đã gửi. Chờ Ban Giám Hiệu phê duyệt!")
                 else: st.error("Vui lòng nhập lý do!")
 
         with t4:
-            yk = st.text_area("Hòm thư phản ánh & thắc mắc:")
+            yk = st.text_area("Hòm thư phản ánh gửi Ban Giám Hiệu:")
             if st.button("Gửi phản ánh"):
                 st.session_state.lich_su.append({
                     "Loại": "Phản ánh", "Lớp": user['class'], "Tên": user['name'], 
                     "Nội dung": yk, "Thời gian": datetime.now().strftime("%H:%M %d/%m")
                 })
-                st.success("📩 Nhà trường đã nhận được ý kiến của bạn!")
+                st.success("📩 Ban Giám Hiệu đã nhận được ý kiến của bạn!")
 
-    # --- GIAO DIỆN ADMIN GIÁO VIÊN (Tài khoản: thptmcc_admin) ---
+    # --- GIAO DIỆN BAN GIÁM HIỆU NHÀ TRƯỜNG ---
     elif user.get('role') == "admin_gv":
-        st.title("📂 QUẢN LÝ CỦA GIÁO VIÊN")
+        st.title("📂 HÒM THƯ QUẢN LÝ CỦA BAN GIÁM HIỆU")
         classes_list = ([f"10A{i}" for i in range(1, 10)] + [f"11A{i}" for i in range(1, 8)] + [f"12A{i}" for i in range(1, 8)])
-        chon_lop = st.selectbox("Lọc danh sách đi học theo lớp:", classes_list)
+        chon_lop = st.selectbox("Lọc danh sách học sinh theo lớp:", classes_list)
         
-        st.subheader(f"Danh sách học sinh lớp {chon_lop}")
+        st.subheader(f"Danh sách học sinh lớp {chon_lop} có mặt")
         ds = [i for i in st.session_state.lich_su if i['Loại'] == "Điểm danh" and i['Lớp'] == chon_lop]
         if ds:
             for r in ds:
-                c1, c2 = st.columns([1,3])
+                c1, c2 = st.columns([1, 4])
                 with c1: st.image(r['Ảnh'], width=150)
                 with c2: st.write(f"👤 **{r['Tên']}**\n\n⏰ Thời gian: {r['Thời gian']}")
         else: st.info(f"Lớp {chon_lop} chưa có dữ liệu điểm danh.")
@@ -141,7 +151,7 @@ def main_app():
         if ds_don: st.table(ds_don)
         else: st.info("Hòm thư hiện tại đang trống.")
 
-    # --- GIAO DIỆN ADMIN BÁN TRÚ (Tài khoản: bantru_mcc) ---
+    # --- GIAO DIỆN QUẢN LÝ BÁN TRÚ ---
     elif user.get('role') == "admin_an":
         st.title("🍱 QUẢN LÝ SUẤT ĂN BÁN TRÚ")
         ds_an = [i for i in st.session_state.lich_su if i['Loại'] == "Báo ăn"]
