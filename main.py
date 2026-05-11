@@ -7,13 +7,13 @@ import base64
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="THPT Mù Cang Chải", page_icon="🏫", layout="wide")
 
-# --- HÀM MÃ HÓA ẢNH (Để lưu vào CSV) ---
+# --- HÀM MÃ HÓA ẢNH ---
 def image_to_base64(image_file):
     if image_file is not None:
         return base64.b64encode(image_file.getvalue()).decode()
     return ""
 
-# --- TỰ ĐỘNG KHỞI TẠO FILE DỮ LIỆU ---
+# --- TỰ ĐỘNG KHỞI TẠO FILE ---
 for f in ["hoc-sinh.csv", "nhat-ky.csv"]:
     if not os.path.exists(f):
         if f == "hoc-sinh.csv":
@@ -30,11 +30,10 @@ def save_data(file_name, new_entry):
     data.append(new_entry)
     pd.DataFrame(data).to_csv(file_name, index=False)
 
-# KHỞI TẠO BIẾN SESSION
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 if 'page' not in st.session_state: st.session_state.page = "login"
 
-# 1. TRANG ĐĂNG KÝ
+# 1. ĐĂNG KÝ & ĐĂNG NHẬP
 def registration_page():
     st.title("📝 ĐĂNG KÝ HỌC SINH")
     with st.form("reg_form"):
@@ -46,10 +45,9 @@ def registration_page():
         if st.form_submit_button("Xác nhận đăng ký"):
             if u_id and pwd and name:
                 save_data("hoc-sinh.csv", {"username": u_id, "password": pwd, "name": name, "class": lop, "role": "student"})
-                st.success("✅ Đăng ký thành công! Hãy quay lại đăng nhập.")
+                st.success("✅ Đăng ký thành công!"); st.session_state.page = "login"
     if st.button("Quay lại"): st.session_state.page = "login"; st.rerun()
 
-# 2. TRANG ĐĂNG NHẬP
 def login_page():
     st.markdown("<h1 style='text-align: center; color: #1E88E5;'>TRƯỜNG THPT MÙ CANG CHẢI</h1>", unsafe_allow_html=True)
     u_in = st.text_input("Tên tài khoản:")
@@ -64,42 +62,60 @@ def login_page():
         else:
             users = load_data("hoc-sinh.csv")
             user_found = next((u for u in users if str(u['username']) == u_in and str(u['password']) == p_in), None)
-            if user_found:
-                st.session_state.logged_in = True; st.session_state.user_info = user_found; st.rerun()
+            if user_found: st.session_state.logged_in = True; st.session_state.user_info = user_found; st.rerun()
             else: st.error("Sai thông tin!")
     if st.button("Đăng ký mới"): st.session_state.page = "register"; st.rerun()
 
-# 3. GIAO DIỆN CHÍNH
+# 2. GIAO DIỆN CHÍNH
 def main_app():
     user = st.session_state.user_info
     st.sidebar.title(f"👤 {user['name']}")
     if st.sidebar.button("ĐĂNG XUẤT"): st.session_state.logged_in = False; st.rerun()
 
-    # --- HỌC SINH ---
     if user.get('role') == "student":
         st.title("📍 CỔNG HỌC SINH")
         
-        # Kiểm tra thông báo duyệt
         nhat_ky_all = load_data("nhat-ky.csv")
         thong_bao = [i for i in nhat_ky_all if i['Tên'] == user['name'] and "✅" in str(i['Trạng thái'])]
         if thong_bao:
             for tb in thong_bao[-1:]: st.success(f"📢 **{tb['Trạng thái']}**")
 
         t1, t2, t3, t4 = st.tabs(["Điểm danh", "Hủy bữa", "Xin nghỉ", "Phản ánh"])
+        
         with t1:
             a_dd = st.camera_input("Chụp ảnh điểm danh")
             if a_dd and st.button("GỬI ĐIỂM DANH"):
                 save_data("nhat-ky.csv", {"Loại":"Điểm danh","Lớp":user['class'],"Tên":user['name'],"Nội dung":"Có mặt","Thời gian":datetime.now().strftime("%H:%M %d/%m"),"Trạng thái":"⏳ Chờ duyệt","Ảnh":image_to_base64(a_dd)})
-                st.success("✅ Đã gửi ảnh điểm danh!")
+                st.success("✅ Đã gửi điểm danh!")
+
         with t2:
+            st.subheader("Hủy bữa ăn bán trú")
+            # Cảnh báo giờ giấc
+            st.error("🚫 **CẢNH BÁO:** \n- Bữa trưa: Hết hạn hủy sau 09:00 sáng. \n- Bữa chiều: Hết hạn hủy sau 15:00 chiều.")
+            
             thu = st.selectbox("Ngày báo hủy:", ["Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6"])
             buoi = st.multiselect("Chọn buổi muốn hủy:", ["Bữa Trưa", "Bữa Chiều"], default=["Bữa Trưa"])
             xac_nhan = st.checkbox(f"Tôi muốn hủy ăn {', '.join(buoi)} {thu}")
+            
+            now = datetime.now()
+            gio_hien_tai = now.hour
+            
             if st.button("Xác nhận hủy bữa"):
-                if xac_nhan:
-                    save_data("nhat-ky.csv", {"Loại":"Báo ăn","Lớp":user['class'],"Tên":user['name'],"Nội dung":f"HỦY ĂN: {thu} ({', '.join(buoi)})","Thời gian":datetime.now().strftime("%H:%M %d/%m"),"Trạng thái":"Đã gửi","Ảnh":""})
-                    st.success("❌ Đã báo hủy!")
-                else: st.error("Vui lòng tích xác nhận!")
+                if not xac_nhan:
+                    st.error("Vui lòng tích vào ô xác nhận!")
+                else:
+                    loi_gio = False
+                    if "Bữa Trưa" in buoi and gio_hien_tai >= 9:
+                        st.error("❌ Đã quá 09:00, không thể hủy bữa Trưa hôm nay!")
+                        loi_gio = True
+                    if "Bữa Chiều" in buoi and gio_hien_tai >= 15:
+                        st.error("❌ Đã quá 15:00, không thể hủy bữa Chiều hôm nay!")
+                        loi_gio = True
+                    
+                    if not loi_gio:
+                        save_data("nhat-ky.csv", {"Loại":"Báo ăn","Lớp":user['class'],"Tên":user['name'],"Nội dung":f"HỦY ĂN: {thu} ({', '.join(buoi)})","Thời gian":now.strftime("%H:%M %d/%m"),"Trạng thái":"Đã gửi","Ảnh":""})
+                        st.success(f"❌ Đã gửi yêu cầu hủy {', '.join(buoi)}!")
+
         with t3:
             ly_do = st.text_area("Lý do nghỉ:")
             a_nghi = st.camera_input("Chụp minh chứng (Đơn thuốc/Chỗ đau)")
@@ -108,13 +124,13 @@ def main_app():
                     save_data("nhat-ky.csv", {"Loại":"Xin nghỉ","Lớp":user['class'],"Tên":user['name'],"Nội dung":ly_do,"Thời gian":datetime.now().strftime("%H:%M %d/%m"),"Trạng thái":"⏳ Chờ duyệt","Ảnh":image_to_base64(a_nghi)})
                     st.success("✅ Đã gửi đơn!")
                 else: st.error("Vui lòng nhập lý do!")
+
         with t4:
             yk = st.text_area("Ý kiến:")
             if st.button("Gửi phản ánh"):
                 save_data("nhat-ky.csv", {"Loại":"Phản ánh","Lớp":user['class'],"Tên":user['name'],"Nội dung":yk,"Thời gian":datetime.now().strftime("%H:%M %d/%m"),"Trạng thái":"Đã gửi","Ảnh":""})
-                st.success("📩 Đã nhận!")
+                st.success("📩 Đã nhận phản ánh!")
 
-    # --- BAN GIÁM HIỆU ---
     elif user.get('role') == "admin_gv":
         st.title("📂 QUẢN LÝ BAN GIÁM HIỆU")
         nhat_ky = load_data("nhat-ky.csv")
@@ -126,13 +142,12 @@ def main_app():
                     with st.expander(f"✉️ {item['Tên']} - {item['Trạng thái']}"):
                         st.write(f"**Lớp:** {item['Lớp']} | **Nội dung:** {item['Nội dung']}")
                         if str(item.get('Ảnh')) != "nan" and item.get('Ảnh'):
-                            st.image(base64.b64decode(item['Ảnh']), width=300, caption="Ảnh học sinh gửi")
+                            st.image(base64.b64decode(item['Ảnh']), width=300)
                         
                         if loai_filter == "Phản ánh":
                             rep = st.text_input("Trả lời học sinh:", key=f"r_{i}")
                             if st.button("Gửi phản hồi", key=f"rb_{i}"):
-                                nhat_ky[i]['Trạng thái'] = f"✅ BGH trả lời: {rep}"
-                                pd.DataFrame(nhat_ky).to_csv("nhat-ky.csv", index=False); st.rerun()
+                                nhat_ky[i]['Trạng thái'] = f"✅ BGH trả lời: {rep}"; pd.DataFrame(nhat_ky).to_csv("nhat-ky.csv", index=False); st.rerun()
                         else:
                             c1, c2, c3 = st.columns(3)
                             with c1:
@@ -146,10 +161,9 @@ def main_app():
                                     nhat_ky.pop(i); pd.DataFrame(nhat_ky).to_csv("nhat-ky.csv", index=False); st.rerun()
 
         with tab1: display_admin_section("Xin nghỉ", "✅ BGH đã duyệt! Bạn hãy nghỉ ngơi theo yêu cầu nhé.")
-        with tab2: display_admin_section("Điểm danh", "✅ BGH xác nhận bạn đã vào lớp.")
+        with tab2: display_admin_section("Điểm danh", "✅ BGH xác nhận điểm danh.")
         with tab3: display_admin_section("Phản ánh", "")
 
-    # --- BÁN TRÚ ---
     elif user.get('role') == "admin_an":
         st.title("🍱 QUẢN LÝ BÁN TRÚ")
         nhat_ky = load_data("nhat-ky.csv")
