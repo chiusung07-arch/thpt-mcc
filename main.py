@@ -2,9 +2,16 @@ import streamlit as st
 from datetime import datetime
 import pandas as pd
 import os
+import base64
 
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="THPT Mù Cang Chải", page_icon="🏫", layout="wide")
+
+# --- HÀM MÃ HÓA ẢNH (Để lưu vào CSV) ---
+def image_to_base64(image_file):
+    if image_file is not None:
+        return base64.b64encode(image_file.getvalue()).decode()
+    return ""
 
 # --- TỰ ĐỘNG KHỞI TẠO FILE DỮ LIỆU ---
 for f in ["hoc-sinh.csv", "nhat-ky.csv"]:
@@ -12,7 +19,7 @@ for f in ["hoc-sinh.csv", "nhat-ky.csv"]:
         if f == "hoc-sinh.csv":
             pd.DataFrame(columns=["username","password","name","class","role"]).to_csv(f, index=False)
         else:
-            pd.DataFrame(columns=["Loại","Lớp","Tên","Nội dung","Thời gian","Trạng thái"]).to_csv(f, index=False)
+            pd.DataFrame(columns=["Loại","Lớp","Tên","Nội dung","Thời gian","Trạng thái","Ảnh"]).to_csv(f, index=False)
 
 def load_data(file_name):
     try: return pd.read_csv(file_name).to_dict('records')
@@ -34,11 +41,11 @@ def registration_page():
         name = st.text_input("Họ và tên học sinh:")
         classes = [f"10A{i}" for i in range(1, 10)] + [f"11A{i}" for i in range(1, 8)] + [f"12A{i}" for i in range(1, 8)]
         lop = st.selectbox("Lớp học:", classes)
-        user_id = st.text_input("Tên tài khoản:")
+        u_id = st.text_input("Tên tài khoản:")
         pwd = st.text_input("Mật khẩu:", type="password")
         if st.form_submit_button("Xác nhận đăng ký"):
-            if user_id and pwd and name:
-                save_data("hoc-sinh.csv", {"username": user_id, "password": pwd, "name": name, "class": lop, "role": "student"})
+            if u_id and pwd and name:
+                save_data("hoc-sinh.csv", {"username": u_id, "password": pwd, "name": name, "class": lop, "role": "student"})
                 st.success("✅ Đăng ký thành công! Hãy quay lại đăng nhập.")
     if st.button("Quay lại"): st.session_state.page = "login"; st.rerun()
 
@@ -68,104 +75,87 @@ def main_app():
     st.sidebar.title(f"👤 {user['name']}")
     if st.sidebar.button("ĐĂNG XUẤT"): st.session_state.logged_in = False; st.rerun()
 
-    # --- GIAO DIỆN HỌC SINH ---
+    # --- HỌC SINH ---
     if user.get('role') == "student":
         st.title("📍 CỔNG HỌC SINH")
         
+        # Kiểm tra thông báo duyệt
         nhat_ky_all = load_data("nhat-ky.csv")
         thong_bao = [i for i in nhat_ky_all if i['Tên'] == user['name'] and "✅" in str(i['Trạng thái'])]
         if thong_bao:
-            for tb in thong_bao:
-                st.success(f"📢 **Thông báo:** {tb['Trạng thái']}. Bạn hãy nghỉ ngơi theo yêu cầu!")
+            for tb in thong_bao[-1:]: st.success(f"📢 **{tb['Trạng thái']}**")
 
-        t1, t2, t3, t4 = st.tabs(["Điểm danh", "Hủy bữa ăn", "Xin nghỉ", "Phản ánh"])
-        
+        t1, t2, t3, t4 = st.tabs(["Điểm danh", "Hủy bữa", "Xin nghỉ", "Phản ánh"])
         with t1:
-            anh_dd = st.camera_input("Chụp ảnh điểm danh")
-            if anh_dd and st.button("GỬI ĐIỂM DANH"):
-                save_data("nhat-ky.csv", {"Loại": "Điểm danh", "Lớp": user['class'], "Tên": user['name'], "Nội dung": "Đã điểm danh", "Thời gian": datetime.now().strftime("%H:%M %d/%m"), "Trạng thái": "⏳ Chờ duyệt"})
+            a_dd = st.camera_input("Chụp ảnh điểm danh")
+            if a_dd and st.button("GỬI ĐIỂM DANH"):
+                save_data("nhat-ky.csv", {"Loại":"Điểm danh","Lớp":user['class'],"Tên":user['name'],"Nội dung":"Có mặt","Thời gian":datetime.now().strftime("%H:%M %d/%m"),"Trạng thái":"⏳ Chờ duyệt","Ảnh":image_to_base64(a_dd)})
                 st.success("✅ Đã gửi ảnh điểm danh!")
-        
         with t2:
-            st.subheader("Hủy bữa ăn bán trú")
-            thu = st.selectbox("Ngày báo hủy:", ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6"])
+            thu = st.selectbox("Ngày báo hủy:", ["Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6"])
             buoi = st.multiselect("Chọn buổi muốn hủy:", ["Bữa Trưa", "Bữa Chiều"], default=["Bữa Trưa"])
-            st.warning("⚠️ Chỉ chọn nếu bạn muốn HỦY bữa ăn mặc định.")
-            xac_nhan_huy = st.checkbox(f"Tôi xác nhận hủy {', '.join(buoi)} {thu}")
-            if st.button("Gửi yêu cầu hủy bữa"):
-                if xac_nhan_huy:
-                    save_data("nhat-ky.csv", {"Loại": "Báo ăn", "Lớp": user['class'], "Tên": user['name'], "Nội dung": f"HỦY ĂN: {thu} ({', '.join(buoi)})", "Thời gian": datetime.now().strftime("%H:%M %d/%m"), "Trạng thái": "Đã gửi"})
-                    st.success("❌ Đã gửi yêu cầu hủy bữa!")
-                else: st.error("Vui lòng tích vào ô xác nhận!")
-
+            xac_nhan = st.checkbox(f"Tôi muốn hủy ăn {', '.join(buoi)} {thu}")
+            if st.button("Xác nhận hủy bữa"):
+                if xac_nhan:
+                    save_data("nhat-ky.csv", {"Loại":"Báo ăn","Lớp":user['class'],"Tên":user['name'],"Nội dung":f"HỦY ĂN: {thu} ({', '.join(buoi)})","Thời gian":datetime.now().strftime("%H:%M %d/%m"),"Trạng thái":"Đã gửi","Ảnh":""})
+                    st.success("❌ Đã báo hủy!")
+                else: st.error("Vui lòng tích xác nhận!")
         with t3:
-            st.subheader("Gửi đơn xin nghỉ")
-            ly_do = st.text_area("Lý do nghỉ (Ghi rõ tình trạng sức khỏe):")
-            st.write("📸 **Minh chứng (Đơn thuốc/Hóa đơn/Vết thương):**")
-            anh_nghi = st.camera_input("Chụp ảnh minh chứng", key="cam_nghi")
+            ly_do = st.text_area("Lý do nghỉ:")
+            a_nghi = st.camera_input("Chụp minh chứng (Đơn thuốc/Chỗ đau)")
             if st.button("Gửi đơn xin nghỉ"):
                 if ly_do:
-                    nd = f"Lý do: {ly_do}" + (" (Có ảnh minh chứng)" if anh_nghi else "")
-                    save_data("nhat-ky.csv", {"Loại": "Xin nghỉ", "Lớp": user['class'], "Tên": user['name'], "Nội dung": nd, "Thời gian": datetime.now().strftime("%H:%M %d/%m"), "Trạng thái": "⏳ Chờ duyệt"})
-                    st.success("✅ Đơn đã được gửi tới BGH!")
+                    save_data("nhat-ky.csv", {"Loại":"Xin nghỉ","Lớp":user['class'],"Tên":user['name'],"Nội dung":ly_do,"Thời gian":datetime.now().strftime("%H:%M %d/%m"),"Trạng thái":"⏳ Chờ duyệt","Ảnh":image_to_base64(a_nghi)})
+                    st.success("✅ Đã gửi đơn!")
                 else: st.error("Vui lòng nhập lý do!")
-
         with t4:
-            yk = st.text_area("Ý kiến/Kiến nghị:")
+            yk = st.text_area("Ý kiến:")
             if st.button("Gửi phản ánh"):
-                save_data("nhat-ky.csv", {"Loại": "Phản ánh", "Lớp": user['class'], "Tên": user['name'], "Nội dung": yk, "Thời gian": datetime.now().strftime("%H:%M %d/%m"), "Trạng thái": "⏳ Đã gửi"})
-                st.success("📩 Cảm ơn bạn đã phản hồi!")
+                save_data("nhat-ky.csv", {"Loại":"Phản ánh","Lớp":user['class'],"Tên":user['name'],"Nội dung":yk,"Thời gian":datetime.now().strftime("%H:%M %d/%m"),"Trạng thái":"Đã gửi","Ảnh":""})
+                st.success("📩 Đã nhận!")
 
-    # --- GIAO DIỆN BAN GIÁM HIỆU ---
+    # --- BAN GIÁM HIỆU ---
     elif user.get('role') == "admin_gv":
         st.title("📂 QUẢN LÝ BAN GIÁM HIỆU")
         nhat_ky = load_data("nhat-ky.csv")
-        tab_nghi, tab_danh, tab_phan_anh = st.tabs(["📑 Duyệt xin nghỉ", "📸 Duyệt điểm danh", "💬 Trả lời phản ánh"])
-
-        with tab_nghi:
+        tab1, tab2, tab3 = st.tabs(["📑 Duyệt nghỉ", "📸 Duyệt điểm danh", "💬 Trả lời phản ánh"])
+        
+        def display_admin_section(loai_filter, msg_duyet):
             for i, item in enumerate(nhat_ky):
-                if item['Loại'] == "Xin nghỉ":
+                if item['Loại'] == loai_filter:
                     with st.expander(f"✉️ {item['Tên']} - {item['Trạng thái']}"):
-                        st.write(f"**Nội dung:** {item['Nội dung']}")
-                        c1, c2, c3 = st.columns(3)
-                        with c1:
-                            if st.button(f"Duyệt ✅", key=f"n_d_{i}"):
-                                nhat_ky[i]['Trạng thái'] = "✅ Đã duyệt"; pd.DataFrame(nhat_ky).to_csv("nhat-ky.csv", index=False); st.rerun()
-                        with c2:
-                            if st.button(f"Từ chối ❌", key=f"n_tc_{i}"):
-                                nhat_ky[i]['Trạng thái'] = "❌ Từ chối"; pd.DataFrame(nhat_ky).to_csv("nhat-ky.csv", index=False); st.rerun()
-                        with c3:
-                            if st.button(f"Xóa 🗑️", key=f"n_del_{i}"):
-                                nhat_ky.pop(i); pd.DataFrame(nhat_ky).to_csv("nhat-ky.csv", index=False); st.rerun()
+                        st.write(f"**Lớp:** {item['Lớp']} | **Nội dung:** {item['Nội dung']}")
+                        if str(item.get('Ảnh')) != "nan" and item.get('Ảnh'):
+                            st.image(base64.b64decode(item['Ảnh']), width=300, caption="Ảnh học sinh gửi")
+                        
+                        if loai_filter == "Phản ánh":
+                            rep = st.text_input("Trả lời học sinh:", key=f"r_{i}")
+                            if st.button("Gửi phản hồi", key=f"rb_{i}"):
+                                nhat_ky[i]['Trạng thái'] = f"✅ BGH trả lời: {rep}"
+                                pd.DataFrame(nhat_ky).to_csv("nhat-ky.csv", index=False); st.rerun()
+                        else:
+                            c1, c2, c3 = st.columns(3)
+                            with c1:
+                                if st.button(f"Duyệt ✅", key=f"d_{loai_filter}_{i}"):
+                                    nhat_ky[i]['Trạng thái'] = msg_duyet; pd.DataFrame(nhat_ky).to_csv("nhat-ky.csv", index=False); st.balloons(); st.rerun()
+                            with c2:
+                                if st.button(f"Từ chối ❌", key=f"tc_{loai_filter}_{i}"):
+                                    nhat_ky[i]['Trạng thái'] = "❌ Từ chối"; pd.DataFrame(nhat_ky).to_csv("nhat-ky.csv", index=False); st.rerun()
+                            with c3:
+                                if st.button(f"Xóa 🗑️", key=f"del_{loai_filter}_{i}"):
+                                    nhat_ky.pop(i); pd.DataFrame(nhat_ky).to_csv("nhat-ky.csv", index=False); st.rerun()
 
-        with tab_danh:
-            for i, item in enumerate(nhat_ky):
-                if item['Loại'] == "Điểm danh":
-                    with st.expander(f"👤 {item['Tên']} - {item['Lớp']}"):
-                        if st.button(f"Xác nhận có mặt ✅", key=f"d_d_{i}"):
-                            nhat_ky[i]['Trạng thái'] = "✅ Đã duyệt"; pd.DataFrame(nhat_ky).to_csv("nhat-ky.csv", index=False); st.rerun()
-                        if st.button(f"Xóa 🗑️", key=f"d_del_{i}"):
-                            nhat_ky.pop(i); pd.DataFrame(nhat_ky).to_csv("nhat-ky.csv", index=False); st.rerun()
+        with tab1: display_admin_section("Xin nghỉ", "✅ BGH đã duyệt! Bạn hãy nghỉ ngơi theo yêu cầu nhé.")
+        with tab2: display_admin_section("Điểm danh", "✅ BGH xác nhận bạn đã vào lớp.")
+        with tab3: display_admin_section("Phản ánh", "")
 
-        with tab_phan_anh:
-            for i, item in enumerate(nhat_ky):
-                if item['Loại'] == "Phản ánh":
-                    with st.expander(f"📩 Từ {item['Tên']}"):
-                        st.write(f"**Nội dung:** {item['Nội dung']}")
-                        tra_loi = st.text_input("Trả lời:", key=f"rep_{i}")
-                        if st.button("Gửi phản hồi", key=f"rep_b_{i}"):
-                            nhat_ky[i]['Trạng thái'] = f"✅ BGH trả lời: {tra_loi}"
-                            pd.DataFrame(nhat_ky).to_csv("nhat-ky.csv", index=False); st.rerun()
-                        if st.button(f"Xóa 🗑️", key=f"p_del_{i}"):
-                            nhat_ky.pop(i); pd.DataFrame(nhat_ky).to_csv("nhat-ky.csv", index=False); st.rerun()
-
-    # --- GIAO DIỆN BÁN TRÚ ---
+    # --- BÁN TRÚ ---
     elif user.get('role') == "admin_an":
         st.title("🍱 QUẢN LÝ BÁN TRÚ")
         nhat_ky = load_data("nhat-ky.csv")
         ds_an = [i for i in nhat_ky if i['Loại'] == "Báo ăn"]
         if ds_an: st.table(pd.DataFrame(ds_an))
-        else: st.info("Chưa có ai hủy cơm.")
+        else: st.info("Chưa có báo hủy bữa.")
 
 # ĐIỀU HƯỚNG
 if not st.session_state.logged_in:
