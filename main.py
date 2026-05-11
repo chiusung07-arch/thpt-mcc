@@ -6,7 +6,7 @@ import os
 # --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="THPT Mù Cang Chải", page_icon="🏫", layout="wide")
 
-# --- TỰ ĐỘNG KHỞI TẠO FILE DỮ LIỆU (Để không bị lỗi đỏ) ---
+# --- TỰ ĐỘNG KHỞI TẠO FILE DỮ LIỆU ---
 for f in ["hoc-sinh.csv", "nhat-ky.csv"]:
     if not os.path.exists(f):
         if f == "hoc-sinh.csv":
@@ -71,39 +71,61 @@ def main_app():
     # --- HỌC SINH ---
     if user.get('role') == "student":
         st.title("📍 CỔNG HỌC SINH")
+        
+        # HIỂN THỊ THÔNG BÁO DUYỆT TỪ BGH
+        nhat_ky_all = load_data("nhat-ky.csv")
+        thong_bao = [i for i in nhat_ky_all if i['Tên'] == user['name'] and i['Trạng thái'] == "✅ Đã duyệt"]
+        if thong_bao:
+            st.success(f"🎊 Chúc mừng **{user['name']}**! Đơn của bạn đã được duyệt. Bạn hãy nghỉ ngơi theo yêu cầu nhé!")
+
         t1, t2, t3, t4 = st.tabs(["Điểm danh", "Báo cơm", "Xin nghỉ", "Phản ánh"])
         with t1:
-            st.info("Chụp ảnh để điểm danh vào lớp")
-            anh = st.camera_input("Camera")
+            anh = st.camera_input("Chụp ảnh điểm danh")
             if anh and st.button("GỬI ĐIỂM DANH"):
                 save_data("nhat-ky.csv", {"Loại": "Điểm danh", "Lớp": user['class'], "Tên": user['name'], "Nội dung": "Đã chụp ảnh", "Thời gian": datetime.now().strftime("%H:%M %d/%m"), "Trạng thái": "Thành công"})
                 st.success("✅ Đã điểm danh!")
         with t2:
             thu = st.selectbox("Ngày:", ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6"])
-            chon = st.radio("Lựa chọn:", ["Báo cơm cho tôi hôm nay", "Xin nghỉ ăn"])
+            buoi = st.multiselect("Chọn buổi ăn:", ["Buổi trưa", "Buổi chiều"], default=["Buổi trưa"])
+            chon = st.radio("Lựa chọn:", ["Đăng ký ăn", "Xin nghỉ ăn"])
             if st.button("Gửi báo cơm"):
-                save_data("nhat-ky.csv", {"Loại": "Báo ăn", "Lớp": user['class'], "Tên": user['name'], "Nội dung": f"{thu}: {chon}", "Thời gian": datetime.now().strftime("%H:%M %d/%m"), "Trạng thái": "Đã gửi"})
+                save_data("nhat-ky.csv", {"Loại": "Báo ăn", "Lớp": user['class'], "Tên": user['name'], "Nội dung": f"{thu} ({', '.join(buoi)}): {chon}", "Thời gian": datetime.now().strftime("%H:%M %d/%m"), "Trạng thái": "Đã gửi"})
                 st.success("🍱 Đã báo cơm!")
         with t3:
             ly_do = st.text_area("Lý do nghỉ:")
-            if st.button("Gửi đơn xin nghỉ"):
+            if st.button("Gửi đơn"):
                 save_data("nhat-ky.csv", {"Loại": "Xin nghỉ", "Lớp": user['class'], "Tên": user['name'], "Nội dung": ly_do, "Thời gian": datetime.now().strftime("%H:%M %d/%m"), "Trạng thái": "⏳ Chờ duyệt"})
                 st.success("✅ Đã gửi đơn!")
         with t4:
-            yk = st.text_area("Ý kiến phản ánh:")
+            yk = st.text_area("Ý kiến:")
             if st.button("Gửi phản ánh"):
                 save_data("nhat-ky.csv", {"Loại": "Phản ánh", "Lớp": user['class'], "Tên": user['name'], "Nội dung": yk, "Thời gian": datetime.now().strftime("%H:%M %d/%m"), "Trạng thái": "Đã nhận"})
-                st.success("📩 Đã gửi phản ánh!")
+                st.success("📩 Đã nhận phản ánh!")
 
-    # --- BAN GIÁM HIỆU ---
+    # --- BAN GIÁM HIỆU (CÓ NÚT DUYỆT) ---
     elif user.get('role') == "admin_gv":
         st.title("📂 QUẢN LÝ BAN GIÁM HIỆU")
         nhat_ky = load_data("nhat-ky.csv")
-        df = pd.DataFrame(nhat_ky)
-        if not df.empty:
-            st.metric("Tổng lượt hoạt động", len(df))
-            st.subheader("Danh sách chi tiết")
-            st.dataframe(df, use_container_width=True)
+        if nhat_ky:
+            st.metric("Tổng lượt hoạt động", len(nhat_ky))
+            for i, item in enumerate(nhat_ky):
+                with st.expander(f"✉️ {item['Tên']} - {item['Loại']} ({item['Trạng thái']})"):
+                    st.write(f"**Lớp:** {item['Lớp']} | **Thời gian:** {item['Thời gian']}")
+                    st.write(f"**Nội dung:** {item['Nội dung']}")
+                    c1, c2, c3 = st.columns(3)
+                    with c1:
+                        if st.button(f"Duyệt ✅", key=f"d_{i}"):
+                            nhat_ky[i]['Trạng thái'] = "✅ Đã duyệt"
+                            pd.DataFrame(nhat_ky).to_csv("nhat-ky.csv", index=False)
+                            st.balloons(); st.rerun()
+                    with c2:
+                        if st.button(f"Từ chối ❌", key=f"tc_{i}"):
+                            nhat_ky[i]['Trạng thái'] = "❌ Từ chối"
+                            pd.DataFrame(nhat_ky).to_csv("nhat-ky.csv", index=False); st.rerun()
+                    with c3:
+                        if st.button(f"Xóa 🗑️", key=f"del_{i}"):
+                            nhat_ky.pop(i)
+                            pd.DataFrame(nhat_ky).to_csv("nhat-ky.csv", index=False); st.rerun()
         else: st.info("Chưa có dữ liệu.")
 
     # --- BÁN TRÚ ---
@@ -111,9 +133,8 @@ def main_app():
         st.title("🍱 QUẢN LÝ BÁN TRÚ")
         nhat_ky = load_data("nhat-ky.csv")
         ds_an = [i for i in nhat_ky if i['Loại'] == "Báo ăn"]
-        if ds_an:
-            st.table(ds_an)
-        else: st.info("Chưa có báo cơm nào.")
+        if ds_an: st.table(ds_an)
+        else: st.info("Chưa có báo cơm.")
 
 # ĐIỀU HƯỚNG
 if not st.session_state.logged_in:
