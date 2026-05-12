@@ -25,8 +25,51 @@ st.set_page_config(
 # CSS
 # ==========================================
 
-st.markdown("""
-<style>
+st.markdown(
+    """
+    <style>
+    /* 1. Đổi màu nền toàn trang sang màu xám nhạt */
+    .stApp {
+        background-color: #f4f7f6;
+    }
+
+    /* 2. Tạo khung trắng bao quanh nội dung để tạo sự độc đáo */
+    .block-container {
+        background-color: white;
+        padding: 40px !important;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        max-width: 450px !important;
+        margin-top: 50px;
+    }
+
+    /* 3. Căn giữa và làm đẹp tiêu đề chữ xanh theo Logo */
+    h1 {
+        color: #0056b3;
+        text-align: center;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* 4. Nút Đăng nhập màu xanh chuẩn */
+    div.stButton > button {
+        width: 100%;
+        background-color: #0056b3;
+        color: white;
+        border-radius: 10px;
+        height: 45px;
+        border: none;
+        font-weight: bold;
+    }
+
+    /* 5. Nút Đăng ký mới màu xanh lá cho tươi mát */
+    div.stButton:nth-of-type(2) > button {
+        background-color: #28a745;
+        margin-top: -10px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 .main {
     background-color: #f5f7fb;
