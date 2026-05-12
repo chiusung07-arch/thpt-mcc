@@ -1,8 +1,1 @@
-columns=[
-    "username",
-    "password",
-    "name",
-    "class",
-    "role",
-    "avatar"
-]
+username,password,name,class,role,avatar
