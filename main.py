@@ -408,64 +408,11 @@ def main_app():
     # STUDENT
     # ======================================
 
-  if user.get('role') == "student":
+    if user.get('role') == "student":
 
-    st.title(
-        "🎓 CỔNG HỌC SINH"
-    )
-
-    # ==================================
-    # THÔNG BÁO
-    # ==================================
-
-    nhat_ky_all = load_data(
-        "nhat-ky.csv"
-    )
-
-    thong_bao = [
-
-        i for i in nhat_ky_all
-
-        if i['Tên'] == user['name']
-
-        and
-
-        (
-            "✅" in str(i['Trạng thái'])
-
-            or
-
-            "❌" in str(i['Trạng thái'])
-
-            or
-
-            "BGH phản hồi"
-            in str(i['Trạng thái'])
+        st.title(
+            "🎓 CỔNG HỌC SINH"
         )
-
-    ]
-
-    if thong_bao:
-
-        st.subheader(
-            "🔔 Thông báo mới"
-        )
-
-        for tb in reversed(
-            thong_bao[-5:]
-        ):
-
-            with st.container(
-                border=True
-            ):
-
-                st.info(
-                    tb['Trạng thái']
-                )
-
-                st.caption(
-                    tb['Thời gian']
-                )
 
         tabs = [
 
