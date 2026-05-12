@@ -632,7 +632,7 @@ def main_app():
                 st.success(
                     "✅ Đã gửi đơn!"
                 )
-            # HIỂN THỊ TRẠNG THÁI ĐƠN NGHỈ SAU KHI GỬI
+# HIỂN THỊ TRẠNG THÁI ĐƠN NGHỈ SAU KHI GỬI
 logs = load_data("nhat-ky.csv")
 
 my_requests = [
