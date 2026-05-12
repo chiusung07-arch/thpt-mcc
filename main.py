@@ -425,6 +425,7 @@ def main_app():
         )
 
         tabs = [
+            "🔔 Thông báo",
 
             "📸 Điểm danh",
 
@@ -503,8 +504,48 @@ def main_app():
                 st.success(
                     "✅ Đã gửi điểm danh!"
                 )
+                
+index += 1
+        # ==================================
+        # THÔNG BÁO
+        # ==================================
 
-        index += 1
+with tbs[index]:
+
+    st.subheader(
+        "🔔 Thông báo từ Ban Giám Hiệu"
+    )
+
+    ds_tb = load_data(
+        "thong-bao.csv"
+    )
+
+    if ds_tb:
+
+        for tb in reversed(ds_tb):
+
+            with st.container(
+                border=True
+            ):
+
+                st.markdown(
+                    f"### 📢 {tb['Tiêu đề']}"
+                )
+
+                st.caption(
+                    tb['Thời gian']
+                )
+
+                st.write(
+                    tb['Nội dung']
+                )
+
+    else:
+
+        st.info(
+            "Chưa có thông báo."
+        )
+index += 1
 
         # ==================================
         # HỦY BỮA
@@ -869,10 +910,12 @@ def main_app():
             "💬 Phản ánh",
 
             "📢 Đăng bài"
-
+            
+            "🔔 Thông báo"
+            
         ])
 
-        t_ng, t_dd, t_pa, t_sk = tabs
+        t_ng, t_dd, t_pa, t_sk, t_tb = tabs
 
         def render_admin(loai, msg):
 
@@ -1159,7 +1202,97 @@ def main_app():
                         )
 
                         st.rerun()
+                        
+with t_tb:
 
+    st.subheader(
+        "🔔 Gửi thông báo toàn trường"
+    )
+
+    ds_tb = load_data(
+        "thong-bao.csv"
+    )
+
+    with st.form("new_notice"):
+
+        tieu_de = st.text_input(
+            "Tiêu đề"
+        )
+
+        noi_dung = st.text_area(
+            "Nội dung"
+        )
+
+        if st.form_submit_button(
+            "🚀 Gửi thông báo"
+        ):
+
+            ds_tb.append({
+
+                "Tiêu đề":
+                tieu_de,
+
+                "Nội dung":
+                noi_dung,
+
+                "Thời gian":
+                datetime.now().strftime(
+                    "%H:%M %d/%m/%Y"
+                )
+
+            })
+
+            save_all_data(
+                "thong-bao.csv",
+                ds_tb
+            )
+
+            st.success(
+                "✅ Đã gửi!"
+            )
+
+            st.rerun()
+
+    st.divider()
+
+    for idx, tb in enumerate(
+        reversed(ds_tb)
+    ):
+
+        real_index = (
+            len(ds_tb)-1-idx
+        )
+
+        with st.container(
+            border=True
+        ):
+
+            st.markdown(
+                f"### 📢 {tb['Tiêu đề']}"
+            )
+
+            st.caption(
+                tb['Thời gian']
+            )
+
+            st.write(
+                tb['Nội dung']
+            )
+
+            if st.button(
+                "🗑️ Xóa",
+                key=f"tb_{real_index}"
+            ):
+
+                ds_tb.pop(real_index)
+
+                save_all_data(
+                    "thong-bao.csv",
+                    ds_tb
+                )
+
+                st.rerun()
+                
     # ======================================
     # ADMIN BÁN TRÚ
     # ======================================
