@@ -100,16 +100,7 @@ def save_all_data(file_name, data_list):
 for f in [
     "hoc-sinh.csv",
     "nhat-ky.csv",
-    "su-kien.csv",
-            elif f == "thong-bao.csv":
-
-            pd.DataFrame(columns=[
-
-                "Tiêu đề",
-                "Nội dung",
-                "Thời gian"
-
-            ]).to_csv(f, index=False)
+    "su-kien.csv"
     "thong-bao.csv"
 ]:
 
@@ -139,6 +130,15 @@ for f in [
                 "Thời gian",
                 "Likes",
                 "Comments"
+
+            ]).to_csv(f, index=False)
+        elif f == "thong-bao.csv":
+
+            pd.DataFrame(columns=[
+
+                "Tiêu đề",
+                "Nội dung",
+                "Thời gian"
 
             ]).to_csv(f, index=False)
 
@@ -183,7 +183,7 @@ def registration_page():
         classes = (
             [f"10A{i}" for i in range(1,10)] +
             [f"11A{i}" for i in range(1,8)] +
-            [f"12A{i}" for i in range(1,8)]
+            [f"12A{i}" for i in range(1,7)]
         )
 
         lop = st.selectbox(
