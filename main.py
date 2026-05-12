@@ -425,27 +425,28 @@ def main_app():
         )
 
         tabs = [
-            "🔔 Thông báo",
 
-            "📸 Điểm danh",
+    "🔔 Thông báo",
 
-            "📝 Xin nghỉ",
+    "📸 Điểm danh",
 
-            "💬 Phản ánh",
+    "📝 Xin nghỉ",
 
-            "🎉 Sự kiện"
+    "💬 Phản ánh",
 
-        ]
+    "🎉 Sự kiện"
 
-        # chỉ bán trú mới có hủy bữa
+]
+
+# chỉ bán trú mới có hủy bữa
 if user.get("loai_hs") == "Bán trú":
 
-            tabs.insert(
-                1,
-                "🍱 Hủy bữa"
-            )
+    tabs.insert(
+        2,
+        "🍱 Hủy bữa"
+    )
 
-        tbs = st.tabs(tabs)
+tbs = st.tabs(tabs)
 
         index = 0
 
