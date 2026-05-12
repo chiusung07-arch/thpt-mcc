@@ -636,11 +636,13 @@ def main_app():
 # LỊCH SỬ ĐƠN XIN NGHỈ
 # ================================
 
-st.divider()
+  st.divider()
+
 st.subheader("📌 Lịch sử đơn xin nghỉ")
-logs = load_data("nhat-ky.csv")
-my_requests = [
-    i for i in logs
+
+     logs = load_data("nhat-ky.csv")
+my_requests = [i for i in logs]
+
     if i.get("Tên") == user["name"]
     and i.get("Loại") == "Xin nghỉ"
 ]
@@ -654,11 +656,11 @@ for r in reversed(my_requests):
 else:
     st.warning("Chưa có đơn nào.")
 
-        # ==================================
-        # PHẢN ÁNH
-        # ==================================
+# ==================================
+# PHẢN ÁNH
+# ==================================
 
-        with tbs[index]:
+with tbs[index]:
 
             yk = st.text_area(
                 "Ý kiến phản ánh"
