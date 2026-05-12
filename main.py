@@ -25,32 +25,8 @@ st.set_page_config(
 # CSS
 # ==========================================
 
-st.markdown(
-    """
-    <style>
-    /* Chỉnh màu nền và căn giữa */
-    .stApp {
-        background-color: #f0f2f6;
-    }
-    
-    /* Làm đẹp tiêu đề */
-    h1 {
-        color: #0056b3;
-        text-align: center;
-    }
-
-    /* Làm nút bấm to và dài ra cho chuyên nghiệp */
-    div.stButton > button {
-        width: 100%;
-        border-radius: 10px;
-        background-color: #0056b3;
-        color: white;
-        height: 50px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+st.markdown("""
+<style>
 
 .main {
     background-color: #f5f7fb;
