@@ -438,7 +438,7 @@ def main_app():
         ]
 
         # chỉ bán trú mới có hủy bữa
-        if user.get("loai_hs") == "Bán trú":
+         if user.get("loai_hs") == "Bán trú":
 
             tabs.insert(
                 1,
@@ -551,7 +551,7 @@ index += 1
         # HỦY BỮA
         # ==================================
 
-        if user.get("loai_hs") == "Bán trú":
+if user.get("loai_hs") == "Bán trú":
 
             with tbs[index]:
 
