@@ -448,7 +448,7 @@ if user.get("loai_hs") == "Bán trú":
 
 tbs = st.tabs(tabs)
 
-        index = 0
+index = 0
 
         # ==================================
         # ĐIỂM DANH
