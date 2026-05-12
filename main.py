@@ -166,7 +166,169 @@ def app():
                 st.info(f"{x['title']}\n{x['content']}\n{x['time']}")
 
         idx+=1
+        
+if user.get('role') == "student":
 
+    st.title("🎓 CỔNG HỌC SINH")
+
+    tabs = [
+        "🔔 Thông báo",
+        "📸 Điểm danh",
+        "📝 Xin nghỉ",
+        "💬 Phản ánh",
+        "🎉 Sự kiện"
+    ]
+
+    # chỉ bán trú mới có hủy bữa
+    if user.get("loai_hs") == "Bán trú":
+        tabs.insert(2, "🍱 Hủy bữa")
+
+    tab_objs = st.tabs(tabs)
+
+    tab_index = 0
+
+    # ==================================
+    # 🔔 THÔNG BÁO (MỚI THÊM)
+    # ==================================
+    with tab_objs[tab_index]:
+        st.subheader("🔔 Thông báo từ BGH")
+
+        notices = load("thong-bao.csv")
+
+        if notices:
+            for n in reversed(notices):
+                st.info(f"""
+                📢 {n['Tiêu đề']}
+                
+                {n['Nội dung']}
+                
+                🕒 {n['Thời gian']}
+                """)
+        else:
+            st.info("Chưa có thông báo.")
+
+    tab_index += 1
+
+    # ==================================
+    # 📸 ĐIỂM DANH
+    # ==================================
+    with tab_objs[tab_index]:
+
+        img = st.camera_input("Chụp khuôn mặt")
+
+        if st.button("Gửi điểm danh") and img:
+
+            data = load("nhat-ky.csv")
+
+            data.append({
+                "Loại": "Điểm danh",
+                "Lớp": user['class'],
+                "Tên": user['name'],
+                "Nội dung": "Có mặt",
+                "Thời gian": str(datetime.now()),
+                "Trạng thái": "Đã gửi",
+                "Ảnh": img64(img)
+            })
+
+            save("nhat-ky.csv", data)
+            st.success("Đã gửi!")
+
+    tab_index += 1
+
+    # ==================================
+    # 🍱 HỦY BỮA (CHỈ BÁN TRÚ)
+    # ==================================
+    if user.get("loai_hs") == "Bán trú":
+
+        with tab_objs[tab_index]:
+
+            thu = st.selectbox("Ngày", ["T2","T3","T4","T5","T6"])
+            buoi = st.multiselect("Bữa", ["Trưa","Chiều"])
+
+            if st.button("Gửi hủy bữa"):
+
+                data = load("nhat-ky.csv")
+
+                data.append({
+                    "Loại": "Báo ăn",
+                    "Lớp": user['class'],
+                    "Tên": user['name'],
+                    "Nội dung": f"Hủy {thu} {buoi}",
+                    "Thời gian": str(datetime.now()),
+                    "Trạng thái": "Đã gửi",
+                    "Ảnh": ""
+                })
+
+                save("nhat-ky.csv", data)
+                st.success("Đã gửi!")
+
+        tab_index += 1
+
+    # ==================================
+    # 📝 XIN NGHỈ
+    # ==================================
+    with tab_objs[tab_index]:
+
+        lydo = st.text_area("Lý do nghỉ")
+        img = st.file_uploader("Ảnh minh chứng")
+
+        if st.button("Gửi đơn"):
+
+            data = load("nhat-ky.csv")
+
+            data.append({
+                "Loại": "Xin nghỉ",
+                "Lớp": user['class'],
+                "Tên": user['name'],
+                "Nội dung": lydo,
+                "Thời gian": str(datetime.now()),
+                "Trạng thái": "Đã gửi",
+                "Ảnh": img64(img)
+            })
+
+            save("nhat-ky.csv", data)
+            st.success("Đã gửi!")
+
+    tab_index += 1
+
+    # ==================================
+    # 💬 PHẢN ÁNH
+    # ==================================
+    with tab_objs[tab_index]:
+
+        yk = st.text_area("Ý kiến")
+
+        if st.button("Gửi phản ánh"):
+
+            data = load("nhat-ky.csv")
+
+            data.append({
+                "Loại": "Phản ánh",
+                "Lớp": user['class'],
+                "Tên": user['name'],
+                "Nội dung": yk,
+                "Thời gian": str(datetime.now()),
+                "Trạng thái": "Đã gửi",
+                "Ảnh": ""
+            })
+
+            save("nhat-ky.csv", data)
+            st.success("Đã gửi!")
+
+    tab_index += 1
+
+    # ==================================
+    # 🎉 SỰ KIỆN
+    # ==================================
+    with tab_objs[tab_index]:
+
+        events = load("event.csv")
+
+        for e in reversed(events):
+
+            st.subheader(e["title"])
+            st.write(e["content"])
+            
         # ---------------- ĐIỂM DANH ----------------
         with t[idx]:
             img = st.camera_input("Cam")
