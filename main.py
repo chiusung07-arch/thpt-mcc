@@ -100,7 +100,17 @@ def save_all_data(file_name, data_list):
 for f in [
     "hoc-sinh.csv",
     "nhat-ky.csv",
-    "su-kien.csv"
+    "su-kien.csv",
+            elif f == "thong-bao.csv":
+
+            pd.DataFrame(columns=[
+
+                "Tiêu đề",
+                "Nội dung",
+                "Thời gian"
+
+            ]).to_csv(f, index=False)
+    "thong-bao.csv"
 ]:
 
     if not os.path.exists(f):
