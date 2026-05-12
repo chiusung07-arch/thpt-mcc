@@ -919,7 +919,7 @@ def render_admin(loai, msg):
                         save_all_data("nhat-ky.csv", nhat_ky)
                         st.rerun()
 
- with t_ng:
+        with t_ng:
             render_admin(
                 "Xin nghỉ",
                 "✅ Đã duyệt nghỉ!"
