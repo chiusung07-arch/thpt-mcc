@@ -632,24 +632,7 @@ def main_app():
                 st.success(
                     "✅ Đã gửi đơn!"
                 )
-# HIỂN THỊ TRẠNG THÁI ĐƠN NGHỈ SAU KHI GỬI
-logs = load_data("nhat-ky.csv")
 
-my_requests = [
-    i for i in logs
-    if i.get("Tên") == user["name"]
-    and i.get("Loại") == "Xin nghỉ"
-]
-
-st.subheader("📌 Trạng thái đơn của bạn")
-
-if my_requests:
-    for r in reversed(my_requests):
-        st.info(
-            f"📄 Nội dung: {r['Nội dung']}\n\n"
-            f"📌 Trạng thái: {r['Trạng thái']}\n"
-            f"🕒 {r['Thời gian']}"
-        )
 else:
     st.warning("Chưa có đơn nào.")
 
