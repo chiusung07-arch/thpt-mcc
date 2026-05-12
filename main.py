@@ -632,9 +632,33 @@ def main_app():
                 st.success(
                     "✅ Đã gửi đơn!"
                 )
+            # hiện phản hồi
+            st.divider()
 
-else:
-    st.warning("Chưa có đơn nào.")
+            logs = load_data(
+                "nhat-ky.csv"
+            )
+
+            replies = [
+
+                i for i in logs
+
+                if i['Tên'] == user['name']
+
+                and
+
+                "BGH phản hồi" in
+                str(i['Trạng thái'])
+
+            ]
+
+            for r in replies:
+
+                st.info(
+                    r['Trạng thái']
+                )
+
+        index += 1
 
         # ==================================
         # PHẢN ÁNH
