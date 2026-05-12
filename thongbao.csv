@@ -1,7 +1,0 @@
-for f in [
-    "hoc-sinh.csv",
-    "nhat-ky.csv",
-    "su-kien.csv",
-    "thoikhoabieu.csv",
-    "thongbao.csv"
-]:
