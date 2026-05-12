@@ -1,6 +1,5 @@
 # ==========================================
 # THPT MÙ CANG CHẢI - SMART SCHOOL SYSTEM
-# FULL VERSION
 # ==========================================
 
 import streamlit as st
@@ -103,6 +102,8 @@ def save_all_data(file_name, data_list):
         index=False
     )
 
+    st.cache_data.clear()
+
 # ==========================================
 # KHỞI TẠO FILE
 # ==========================================
@@ -126,7 +127,7 @@ for f in [
                     "class",
                     "role",
                     "avatar",
-                    "student_type"
+                    "loaingoaitru"
                 ]
             ).to_csv(f, index=False)
 
@@ -206,11 +207,7 @@ def registration_page():
             classes
         )
 
-        # ==========================
-        # BÁN TRÚ / NGOẠI TRÚ
-        # ==========================
-
-        student_type = st.selectbox(
+        loai_hs = st.selectbox(
             "Loại học sinh",
             [
                 "Bán trú",
@@ -249,7 +246,7 @@ def registration_page():
                 )
 
                 if any(
-                    str(u.get('username', '')) == u_id
+                    str(u.get('username',"")) == u_id
                     for u in data
                 ):
 
@@ -275,8 +272,8 @@ def registration_page():
                         "avatar":
                         image_to_base64(avatar),
 
-                        "student_type":
-                        student_type
+                        "loaingoaitru":
+                        loai_hs
 
                     })
 
@@ -324,7 +321,6 @@ def login_page():
         "ĐĂNG NHẬP"
     ):
 
-        # ADMIN BGH
         if (
             u_in == "thptmcc_admin"
             and
@@ -342,7 +338,6 @@ def login_page():
 
             st.rerun()
 
-        # ADMIN BÁN TRÚ
         elif (
             u_in == "bantru_mcc"
             and
@@ -371,11 +366,11 @@ def login_page():
                 (
                     u for u in users
 
-                    if str(u.get('username', '')) == u_in
+                    if str(u.get('username',"")) == u_in
 
                     and
 
-                    str(u.get('password', '')) ==
+                    str(u.get('password',"")) ==
                     hash_password(p_in)
 
                 ),
@@ -413,10 +408,6 @@ def main_app():
 
     user = st.session_state.user_info
 
-    # ======================================
-    # SIDEBAR
-    # ======================================
-
     if user.get("avatar"):
 
         st.sidebar.image(
@@ -430,14 +421,12 @@ def main_app():
         f"👤 {user['name']}"
     )
 
-    st.sidebar.success(
-        f"🎓 {user.get('student_type','')}"
+    st.sidebar.write(
+        f"🏫 {user.get('class','')}"
     )
 
-    st.sidebar.info(
-        datetime.now().strftime(
-            "🕒 %H:%M %d/%m/%Y"
-        )
+    st.sidebar.write(
+        f"🍱 {user.get('loaingoaitru','')}"
     )
 
     if st.sidebar.button(
@@ -455,69 +444,56 @@ def main_app():
     if user.get('role') == "student":
 
         st.markdown("""
-        <h2 style='color:#1565C0'>
+        <h1 style='color:#1565C0'>
         🎓 CỔNG HỌC SINH
-        </h2>
+        </h1>
         """, unsafe_allow_html=True)
 
-        c1, c2, c3 = st.columns(3)
+        tabs_list = [
 
-        with c1:
-            st.metric(
-                "📸 Điểm danh",
-                "Hoạt động"
+            "📸 Điểm danh",
+
+            "📝 Xin nghỉ",
+
+            "💬 Phản ánh",
+
+            "🎉 Sự kiện",
+
+            "📅 Thời khóa biểu"
+
+        ]
+
+        if user.get("loaingoaitru") == "Bán trú":
+
+            tabs_list.insert(
+                1,
+                "🍱 Hủy bữa"
             )
 
-        with c2:
-            st.metric(
-                "🍱 Loại",
-                user.get("student_type","")
-            )
+        tabs = st.tabs(tabs_list)
 
-        with c3:
-            st.metric(
-                "🎉 Sự kiện",
-                len(load_data("su-kien.csv"))
-            )
+        index = 0
 
-        st.divider()
+        t1 = tabs[index]
+        index += 1
 
-        # ==========================
-        # TAB BÁN TRÚ / NGOẠI TRÚ
-        # ==========================
+        if user.get("loaingoaitru") == "Bán trú":
 
-        if user.get("student_type") == "Bán trú":
+            t2 = tabs[index]
+            index += 1
 
-            tabs = st.tabs([
+        t3 = tabs[index]
+        index += 1
 
-                "📸 Điểm danh",
-                "🍱 Hủy bữa",
-                "📝 Xin nghỉ",
-                "💬 Phản ánh",
-                "🎉 Sự kiện",
-                "📅 Thời khóa biểu"
+        t4 = tabs[index]
+        index += 1
 
-            ])
+        t5 = tabs[index]
+        index += 1
 
-            t1, t2, t3, t4, t5, t6 = tabs
+        t6 = tabs[index]
 
-        else:
-
-            tabs = st.tabs([
-
-                "📸 Điểm danh",
-                "📝 Xin nghỉ",
-                "💬 Phản ánh",
-                "🎉 Sự kiện",
-                "📅 Thời khóa biểu"
-
-            ])
-
-            t1, t3, t4, t5, t6 = tabs
-
-        # ==================================
         # ĐIỂM DANH
-        # ==================================
 
         with t1:
 
@@ -534,12 +510,6 @@ def main_app():
                 and
                 st.button("GỬI ĐIỂM DANH")
             ):
-
-                with st.spinner(
-                    "🤖 AI đang nhận diện..."
-                ):
-
-                    time.sleep(2)
 
                 data = load_data(
                     "nhat-ky.csv"
@@ -574,14 +544,12 @@ def main_app():
                 )
 
                 st.success(
-                    "🤖 AI nhận diện thành công!"
+                    "✅ Điểm danh thành công!"
                 )
 
-        # ==================================
         # HỦY BỮA
-        # ==================================
 
-        if user.get("student_type") == "Bán trú":
+        if user.get("loaingoaitru") == "Bán trú":
 
             with t2:
 
@@ -606,23 +574,56 @@ def main_app():
                     [
                         "Bữa Trưa",
                         "Bữa Chiều"
-                    ],
-                    default=["Bữa Trưa"]
+                    ]
                 )
 
                 if st.button(
                     "Xác nhận Hủy"
                 ):
 
+                    data = load_data(
+                        "nhat-ky.csv"
+                    )
+
+                    data.append({
+
+                        "Loại":"Báo ăn",
+
+                        "Lớp":user['class'],
+
+                        "Tên":user['name'],
+
+                        "Nội dung":
+                        f"HỦY {thu} {buoi}",
+
+                        "Thời gian":
+                        datetime.now().strftime(
+                            "%H:%M"
+                        ),
+
+                        "Trạng thái":
+                        "Đã gửi",
+
+                        "Ảnh":""
+
+                    })
+
+                    save_all_data(
+                        "nhat-ky.csv",
+                        data
+                    )
+
                     st.success(
                         "✅ Đã báo hủy!"
                     )
 
-        # ==================================
         # XIN NGHỈ
-        # ==================================
 
         with t3:
+
+            st.subheader(
+                "📝 Xin nghỉ"
+            )
 
             ly_do = st.text_area(
                 "Lý do nghỉ"
@@ -632,15 +633,47 @@ def main_app():
                 "Ảnh minh chứng"
             )
 
-            if st.button("Gửi đơn"):
+            if st.button(
+                "Gửi đơn"
+            ):
+
+                data = load_data(
+                    "nhat-ky.csv"
+                )
+
+                data.append({
+
+                    "Loại":"Xin nghỉ",
+
+                    "Lớp":user['class'],
+
+                    "Tên":user['name'],
+
+                    "Nội dung":ly_do,
+
+                    "Thời gian":
+                    datetime.now().strftime(
+                        "%H:%M %d/%m"
+                    ),
+
+                    "Trạng thái":
+                    "⏳ Chờ duyệt",
+
+                    "Ảnh":
+                    image_to_base64(a_ng)
+
+                })
+
+                save_all_data(
+                    "nhat-ky.csv",
+                    data
+                )
 
                 st.success(
                     "✅ Đã gửi đơn!"
                 )
 
-        # ==================================
         # PHẢN ÁNH
-        # ==================================
 
         with t4:
 
@@ -652,37 +685,132 @@ def main_app():
                 "Gửi phản ánh"
             ):
 
+                data = load_data(
+                    "nhat-ky.csv"
+                )
+
+                data.append({
+
+                    "Loại":"Phản ánh",
+
+                    "Lớp":user['class'],
+
+                    "Tên":user['name'],
+
+                    "Nội dung":yk,
+
+                    "Thời gian":
+                    datetime.now().strftime(
+                        "%H:%M"
+                    ),
+
+                    "Trạng thái":
+                    "Đã gửi",
+
+                    "Ảnh":""
+
+                })
+
+                save_all_data(
+                    "nhat-ky.csv",
+                    data
+                )
+
                 st.success(
                     "📩 Đã gửi!"
                 )
 
-        # ==================================
         # SỰ KIỆN
-        # ==================================
 
         with t5:
 
-            st.subheader(
-                "📣 Bảng tin sự kiện"
+            ds_sk = load_data(
+                "su-kien.csv"
             )
 
-            st.info(
-                "Chưa có sự kiện."
-            )
+            if ds_sk:
 
-        # ==================================
-        # THỜI KHÓA BIỂU
-        # ==================================
+                for idx, sk in enumerate(
+                    reversed(ds_sk)
+                ):
+
+                    r_idx = (
+                        len(ds_sk)-1-idx
+                    )
+
+                    with st.container(
+                        border=True
+                    ):
+
+                        st.markdown(
+                            f"### {sk['Tiêu đề']}"
+                        )
+
+                        st.caption(
+                            sk['Thời gian']
+                        )
+
+                        st.write(
+                            sk['Nội dung']
+                        )
+
+                        if sk.get('Ảnh'):
+
+                            st.image(
+                                base64.b64decode(
+                                    sk['Ảnh']
+                                ),
+                                use_container_width=True
+                            )
+
+                        likes = int(
+                            sk.get('Likes') or 0
+                        )
+
+                        if st.button(
+                            f"👍 Like ({likes})",
+                            key=f"lk_{r_idx}"
+                        ):
+
+                            ds_sk[r_idx]['Likes'] = (
+                                likes + 1
+                            )
+
+                            save_all_data(
+                                "su-kien.csv",
+                                ds_sk
+                            )
+
+                            st.rerun()
+
+        # TKB
 
         with t6:
 
-            st.subheader(
-                "📅 Thời khóa biểu"
+            tkb = load_data(
+                "thoikhoabieu.csv"
             )
 
-            st.info(
-                "Chưa có thời khóa biểu."
-            )
+            tkb_lop = [
+
+                i for i in tkb
+
+                if i['Lớp'] == user['class']
+
+            ]
+
+            if tkb_lop:
+
+                st.dataframe(
+                    pd.DataFrame(tkb_lop),
+                    use_container_width=True
+                )
+
+            else:
+
+                st.info(
+                    "Chưa có thời khóa biểu."
+                )
 
     # ======================================
     # ADMIN BGH
@@ -698,27 +826,13 @@ def main_app():
             "✅ Hệ thống đang hoạt động"
         )
 
-        c1, c2, c3 = st.columns(3)
+        nhat_ky = load_data(
+            "nhat-ky.csv"
+        )
 
-        with c1:
-            st.metric(
-                "📑 Đơn nghỉ",
-                "0"
-            )
-
-        with c2:
-            st.metric(
-                "📸 Điểm danh",
-                "0"
-            )
-
-        with c3:
-            st.metric(
-                "💬 Phản ánh",
-                "0"
-            )
-
-        st.divider()
+        ds_sk = load_data(
+            "su-kien.csv"
+        )
 
         tabs = st.tabs([
 
@@ -732,15 +846,91 @@ def main_app():
         t_ng, t_dd, t_pa, t_sk = tabs
 
         with t_ng:
-            st.info("Chưa có đơn nghỉ")
+
+            don_nghi = [
+                i for i in nhat_ky
+                if i['Loại']=="Xin nghỉ"
+            ]
+
+            if don_nghi:
+
+                for i, item in enumerate(
+                    don_nghi
+                ):
+
+                    with st.container(
+                        border=True
+                    ):
+
+                        st.write(
+                            f"👤 {item['Tên']}"
+                        )
+
+                        st.write(
+                            item['Nội dung']
+                        )
+
+                        if item.get('Ảnh'):
+
+                            st.image(
+                                base64.b64decode(
+                                    item['Ảnh']
+                                )
+                            )
+
+            else:
+
+                st.info(
+                    "Chưa có đơn nghỉ"
+                )
 
         with t_dd:
-            st.info("Chưa có dữ liệu điểm danh")
+
+            ds_dd = [
+                i for i in nhat_ky
+                if i['Loại']=="Điểm danh"
+            ]
+
+            if ds_dd:
+
+                st.dataframe(
+                    pd.DataFrame(ds_dd),
+                    use_container_width=True
+                )
+
+            else:
+
+                st.info(
+                    "Chưa có điểm danh"
+                )
 
         with t_pa:
-            st.info("Chưa có phản ánh")
+
+            ds_pa = [
+                i for i in nhat_ky
+                if i['Loại']=="Phản ánh"
+            ]
+
+            if ds_pa:
+
+                st.dataframe(
+                    pd.DataFrame(ds_pa),
+                    use_container_width=True
+                )
+
+            else:
+
+                st.info(
+                    "Chưa có phản ánh"
+                )
+
+        # ĐĂNG BÀI
 
         with t_sk:
+
+            st.subheader(
+                "📢 Đăng bài sự kiện"
+            )
 
             with st.form("new_post"):
 
@@ -752,13 +942,45 @@ def main_app():
                     "Nội dung"
                 )
 
+                im = st.file_uploader(
+                    "Tải ảnh lên",
+                    type=['jpg','png','jpeg']
+                )
+
                 if st.form_submit_button(
                     "🚀 Đăng bài"
                 ):
 
+                    ds_sk.append({
+
+                        "Tiêu đề": tt,
+
+                        "Nội dung": nd,
+
+                        "Ảnh":
+                        image_to_base64(im),
+
+                        "Thời gian":
+                        datetime.now().strftime(
+                            "%H:%M %d/%m/%Y"
+                        ),
+
+                        "Likes": 0,
+
+                        "Comments": "[]"
+
+                    })
+
+                    save_all_data(
+                        "su-kien.csv",
+                        ds_sk
+                    )
+
                     st.success(
                         "✅ Đăng bài thành công!"
                     )
+
+                    st.rerun()
 
     # ======================================
     # ADMIN BÁN TRÚ
@@ -770,9 +992,27 @@ def main_app():
             "🍱 QUẢN LÝ BÁN TRÚ"
         )
 
-        st.info(
-            "Danh sách học sinh hủy bữa sẽ hiện ở đây."
-        )
+        ds_an = [
+
+            i for i in load_data(
+                "nhat-ky.csv"
+            )
+
+            if i['Loại']=="Báo ăn"
+        ]
+
+        if ds_an:
+
+            st.dataframe(
+                pd.DataFrame(ds_an),
+                use_container_width=True
+            )
+
+        else:
+
+            st.info(
+                "Chưa có dữ liệu."
+            )
 
 # ==========================================
 # ĐIỀU HƯỚNG
