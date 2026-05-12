@@ -547,10 +547,6 @@ with tbs[index]:
         )
 index += 1
 
-        # ==================================
-        # HỦY BỮA
-        # ==================================
-
 if user.get("loai_hs") == "Bán trú":
 
             with tbs[index]:
