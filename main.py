@@ -12,7 +12,7 @@ import hashlib
 import time
 
 # ==========================================
-# CONFIG
+# CẤU HÌNH
 # ==========================================
 
 st.set_page_config(
@@ -33,7 +33,7 @@ st.markdown("""
 }
 
 .block-container {
-    padding-top: 1rem;
+    padding-top: 1.5rem;
 }
 
 .stButton > button {
@@ -41,6 +41,15 @@ st.markdown("""
     border-radius: 12px;
     height: 45px;
     font-weight: bold;
+    font-size: 15px;
+}
+
+.stTextInput > div > div > input {
+    border-radius: 10px;
+}
+
+.stTextArea textarea {
+    border-radius: 10px;
 }
 
 [data-testid="stSidebar"] {
@@ -51,7 +60,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# FUNCTIONS
+# HÀM
 # ==========================================
 
 def hash_password(password):
@@ -94,80 +103,95 @@ def save_all_data(file_name, data_list):
     )
 
 # ==========================================
-# CREATE FILES
+# KHỞI TẠO FILE
 # ==========================================
 
 for f in [
     "hoc-sinh.csv",
     "nhat-ky.csv",
-    "su-kien.csv"
+    "su-kien.csv",
+    "thoikhoabieu.csv"
 ]:
 
     if not os.path.exists(f):
 
         if f == "hoc-sinh.csv":
 
-            pd.DataFrame(columns=[
-
-                "username",
-                "password",
-                "name",
-                "class",
-                "role",
-                "avatar",
-                "loai_hs"
-
-            ]).to_csv(f, index=False)
+            pd.DataFrame(
+                columns=[
+                    "username",
+                    "password",
+                    "name",
+                    "class",
+                    "role",
+                    "avatar",
+                    "noi_tru"
+                ]
+            ).to_csv(f, index=False)
 
         elif f == "su-kien.csv":
 
-            pd.DataFrame(columns=[
+            pd.DataFrame(
+                columns=[
+                    "Tiêu đề",
+                    "Nội dung",
+                    "Ảnh",
+                    "Thời gian",
+                    "Likes",
+                    "Comments"
+                ]
+            ).to_csv(f, index=False)
 
-                "Tiêu đề",
-                "Nội dung",
-                "Ảnh",
-                "Thời gian",
-                "Likes",
-                "Comments"
+        elif f == "thoikhoabieu.csv":
 
-            ]).to_csv(f, index=False)
+            pd.DataFrame(
+                columns=[
+                    "Lớp",
+                    "Thứ",
+                    "Tiết 1",
+                    "Tiết 2",
+                    "Tiết 3",
+                    "Tiết 4",
+                    "Tiết 5"
+                ]
+            ).to_csv(f, index=False)
 
         else:
 
-            pd.DataFrame(columns=[
-
-                "Loại",
-                "Lớp",
-                "Tên",
-                "Nội dung",
-                "Thời gian",
-                "Trạng thái",
-                "Ảnh"
-
-            ]).to_csv(f, index=False)
+            pd.DataFrame(
+                columns=[
+                    "Loại",
+                    "Lớp",
+                    "Tên",
+                    "Nội dung",
+                    "Thời gian",
+                    "Trạng thái",
+                    "Ảnh"
+                ]
+            ).to_csv(f, index=False)
 
 # ==========================================
 # SESSION
 # ==========================================
 
-if "logged_in" not in st.session_state:
+if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
-if "page" not in st.session_state:
+if 'page' not in st.session_state:
     st.session_state.page = "login"
 
 # ==========================================
-# REGISTER
+# ĐĂNG KÝ
 # ==========================================
 
 def registration_page():
 
     st.title("📝 ĐĂNG KÝ HỌC SINH")
 
-    with st.form("register"):
+    with st.form("reg_form"):
 
         name = st.text_input(
-            "Họ và tên"
+            "Họ và tên học sinh"
         )
 
         classes = (
@@ -177,21 +201,18 @@ def registration_page():
         )
 
         lop = st.selectbox(
-            "Lớp",
+            "Lớp học",
             classes
-        )
-
-        loai_hs = st.selectbox(
-            "Loại học sinh",
-            [
-                "Bán trú",
-                "Ngoại trú"
-            ]
         )
 
         avatar = st.file_uploader(
             "Ảnh đại diện",
-            type=['jpg','png','jpeg']
+            type=['jpg','png']
+        )
+
+        noi_tru = st.radio(
+            "Hình thức học",
+            ["Bán trú", "Ngoại trú"]
         )
 
         u_id = st.text_input(
@@ -207,52 +228,60 @@ def registration_page():
             "Xác nhận đăng ký"
         ):
 
-            users = load_data(
-                "hoc-sinh.csv"
-            )
+            if not name or not u_id or not pwd:
 
-            if any(
-                str(u.get('username',"")) == u_id
-                for u in users
-            ):
-
-                st.error(
-                    "⚠️ Tài khoản đã tồn tại!"
+                st.warning(
+                    "⚠️ Nhập đầy đủ thông tin!"
                 )
 
             else:
 
-                users.append({
-
-                    "username": u_id,
-
-                    "password":
-                    hash_password(pwd),
-
-                    "name": name,
-
-                    "class": lop,
-
-                    "role": "student",
-
-                    "avatar":
-                    image_to_base64(avatar),
-
-                    "loai_hs":
-                    loai_hs
-
-                })
-
-                save_all_data(
-                    "hoc-sinh.csv",
-                    users
+                data = load_data(
+                    "hoc-sinh.csv"
                 )
 
-                st.success(
-                    "✅ Đăng ký thành công!"
-                )
+                if any(
+                    str(u['username']) == u_id
+                    for u in data
+                ):
 
-                st.session_state.page = "login"
+                    st.error(
+                        "⚠️ Tài khoản đã tồn tại!"
+                    )
+
+                else:
+
+                    data.append({
+
+                        "username": u_id,
+
+                        "password":
+                        hash_password(pwd),
+
+                        "name": name,
+
+                        "class": lop,
+
+                        "role": "student",
+
+                        "avatar":
+                        image_to_base64(avatar),
+
+                        "noi_tru":
+                        noi_tru
+
+                    })
+
+                    save_all_data(
+                        "hoc-sinh.csv",
+                        data
+                    )
+
+                    st.success(
+                        "✅ Đăng ký thành công!"
+                    )
+
+                    st.session_state.page = "login"
 
     if st.button("Quay lại"):
 
@@ -261,7 +290,7 @@ def registration_page():
         st.rerun()
 
 # ==========================================
-# LOGIN
+# ĐĂNG NHẬP
 # ==========================================
 
 def login_page():
@@ -272,6 +301,8 @@ def login_page():
     </h1>
     """, unsafe_allow_html=True)
 
+    st.markdown("---")
+
     u_in = st.text_input(
         "Tên tài khoản"
     )
@@ -281,7 +312,9 @@ def login_page():
         type="password"
     )
 
-    if st.button("ĐĂNG NHẬP"):
+    if st.button(
+        "ĐĂNG NHẬP"
+    ):
 
         # ADMIN BGH
         if (
@@ -294,8 +327,8 @@ def login_page():
 
             st.session_state.user_info = {
 
-                "name":"Ban Giám Hiệu",
-                "role":"admin_gv"
+                "name": "Ban Giám Hiệu",
+                "role": "admin_gv"
 
             }
 
@@ -312,8 +345,8 @@ def login_page():
 
             st.session_state.user_info = {
 
-                "name":"Quản lý bán trú",
-                "role":"admin_an"
+                "name": "Quản lý bán trú",
+                "role": "admin_an"
 
             }
 
@@ -330,11 +363,11 @@ def login_page():
                 (
                     u for u in users
 
-                    if str(u.get('username',"")) == u_in
+                    if str(u['username']) == u_in
 
                     and
 
-                    str(u.get('password',"")) ==
+                    str(u['password']) ==
                     hash_password(p_in)
 
                 ),
@@ -356,14 +389,16 @@ def login_page():
                     "❌ Sai thông tin!"
                 )
 
-    if st.button("Đăng ký mới"):
+    if st.button(
+        "Đăng ký mới"
+    ):
 
         st.session_state.page = "register"
 
         st.rerun()
 
 # ==========================================
-# MAIN APP
+# APP CHÍNH
 # ==========================================
 
 def main_app():
@@ -376,24 +411,27 @@ def main_app():
 
     if user.get("avatar"):
 
-        try:
-
-            st.sidebar.image(
-                base64.b64decode(
-                    user['avatar']
-                ),
-                width=120
-            )
-
-        except:
-            pass
+        st.sidebar.image(
+            base64.b64decode(
+                user['avatar']
+            ),
+            width=120
+        )
 
     st.sidebar.title(
         f"👤 {user['name']}"
     )
 
+    if user.get("role") == "student":
+
+        st.sidebar.success(
+            f"🏠 {user.get('noi_tru','Bán trú')}"
+        )
+
     st.sidebar.info(
-        f"🏫 {user.get('class','')}"
+        datetime.now().strftime(
+            "🕒 %H:%M %d/%m/%Y"
+        )
     )
 
     if st.sidebar.button(
@@ -405,44 +443,87 @@ def main_app():
         st.rerun()
 
     # ======================================
-    # STUDENT
+    # HỌC SINH
     # ======================================
 
     if user.get('role') == "student":
 
-        st.title(
-            "🎓 CỔNG HỌC SINH"
-        )
+        st.markdown("""
+        <h2 style='color:#1565C0'>
+        🎓 CỔNG HỌC SINH
+        </h2>
+        """, unsafe_allow_html=True)
 
-        tabs = [
+        c1, c2, c3 = st.columns(3)
 
-            "📸 Điểm danh",
-
-            "📝 Xin nghỉ",
-
-            "💬 Phản ánh",
-
-            "🎉 Sự kiện"
-
-        ]
-
-        # chỉ bán trú mới có hủy bữa
-        if user.get("loai_hs") == "Bán trú":
-
-            tabs.insert(
-                1,
-                "🍱 Hủy bữa"
+        with c1:
+            st.metric(
+                "📸 Điểm danh",
+                "Hoạt động"
             )
 
-        tbs = st.tabs(tabs)
+        with c2:
 
-        index = 0
+            if user.get("noi_tru") == "Ngoại trú":
+
+                st.metric(
+                    "🍱 Bán trú",
+                    "Không đăng ký"
+                )
+
+            else:
+
+                st.metric(
+                    "🍱 Bán trú",
+                    "Đang mở"
+                )
+
+        with c3:
+            st.metric(
+                "🎉 Sự kiện",
+                len(load_data("su-kien.csv"))
+            )
+
+        st.divider()
+
+        # ==================================
+        # TAB
+        # ==================================
+
+        if user.get("noi_tru") == "Ngoại trú":
+
+            tabs = st.tabs([
+
+                "📸 Điểm danh",
+                "📝 Xin nghỉ",
+                "💬 Phản ánh",
+                "🎉 Sự kiện",
+                "📅 Thời khóa biểu"
+
+            ])
+
+            t1, t3, t4, t5, t6 = tabs
+
+        else:
+
+            tabs = st.tabs([
+
+                "📸 Điểm danh",
+                "🍱 Hủy bữa",
+                "📝 Xin nghỉ",
+                "💬 Phản ánh",
+                "🎉 Sự kiện",
+                "📅 Thời khóa biểu"
+
+            ])
+
+            t1, t2, t3, t4, t5, t6 = tabs
 
         # ==================================
         # ĐIỂM DANH
         # ==================================
 
-        with tbs[index]:
+        with t1:
 
             st.subheader(
                 "📸 Điểm danh AI"
@@ -457,6 +538,12 @@ def main_app():
                 and
                 st.button("GỬI ĐIỂM DANH")
             ):
+
+                with st.spinner(
+                    "🤖 AI đang nhận diện..."
+                ):
+
+                    time.sleep(2)
 
                 data = load_data(
                     "nhat-ky.csv"
@@ -478,7 +565,7 @@ def main_app():
                     ),
 
                     "Trạng thái":
-                    "📨 Đã gửi",
+                    "⏳ Chờ duyệt",
 
                     "Ảnh":
                     image_to_base64(a_dd)
@@ -491,25 +578,24 @@ def main_app():
                 )
 
                 st.success(
-                    "✅ Đã gửi điểm danh!"
+                    "🤖 AI nhận diện thành công!"
                 )
-
-        index += 1
 
         # ==================================
         # HỦY BỮA
         # ==================================
 
-        if user.get("loai_hs") == "Bán trú":
+        if user.get("noi_tru") != "Ngoại trú":
 
-            with tbs[index]:
+            with t2:
 
-                st.subheader(
-                    "🍱 Hủy bữa"
+                st.error(
+                    "🚫 Hủy Trưa trước 09h | "
+                    "Hủy Chiều trước 15h"
                 )
 
                 thu = st.selectbox(
-                    "Ngày",
+                    "Ngày báo hủy",
                     [
                         "Thứ 2",
                         "Thứ 3",
@@ -520,60 +606,73 @@ def main_app():
                 )
 
                 buoi = st.multiselect(
-                    "Buổi",
+                    "Buổi muốn hủy",
                     [
                         "Bữa Trưa",
                         "Bữa Chiều"
-                    ]
+                    ],
+                    default=["Bữa Trưa"]
                 )
 
                 if st.button(
-                    "Xác nhận hủy"
+                    "Xác nhận Hủy"
                 ):
 
-                    data = load_data(
-                        "nhat-ky.csv"
-                    )
+                    gio = datetime.now().hour
 
-                    data.append({
+                    if (
+                        ("Bữa Trưa" in buoi and gio >= 9)
+                        or
+                        ("Bữa Chiều" in buoi and gio >= 15)
+                    ):
 
-                        "Loại":"Báo ăn",
+                        st.error(
+                            "❌ Quá giờ!"
+                        )
 
-                        "Lớp":user['class'],
+                    else:
 
-                        "Tên":user['name'],
+                        data = load_data(
+                            "nhat-ky.csv"
+                        )
 
-                        "Nội dung":
-                        f"Hủy {thu} {buoi}",
+                        data.append({
 
-                        "Thời gian":
-                        datetime.now().strftime(
-                            "%H:%M"
-                        ),
+                            "Loại":"Báo ăn",
 
-                        "Trạng thái":
-                        "📨 Đã gửi",
+                            "Lớp":user['class'],
 
-                        "Ảnh":""
+                            "Tên":user['name'],
 
-                    })
+                            "Nội dung":
+                            f"HỦY: {thu} {buoi}",
 
-                    save_all_data(
-                        "nhat-ky.csv",
-                        data
-                    )
+                            "Thời gian":
+                            datetime.now().strftime(
+                                "%H:%M"
+                            ),
 
-                    st.success(
-                        "✅ Đã gửi!"
-                    )
+                            "Trạng thái":
+                            "Đã gửi",
 
-            index += 1
+                            "Ảnh":""
+
+                        })
+
+                        save_all_data(
+                            "nhat-ky.csv",
+                            data
+                        )
+
+                        st.success(
+                            "✅ Đã báo hủy!"
+                        )
 
         # ==================================
         # XIN NGHỈ
         # ==================================
 
-        with tbs[index]:
+        with t3:
 
             ly_do = st.text_area(
                 "Lý do nghỉ"
@@ -583,9 +682,7 @@ def main_app():
                 "Ảnh minh chứng"
             )
 
-            if st.button(
-                "Gửi đơn"
-            ):
+            if st.button("Gửi đơn"):
 
                 data = load_data(
                     "nhat-ky.csv"
@@ -607,7 +704,7 @@ def main_app():
                     ),
 
                     "Trạng thái":
-                    "📨 Đã gửi",
+                    "⏳ Chờ duyệt",
 
                     "Ảnh":
                     image_to_base64(a_ng)
@@ -620,16 +717,14 @@ def main_app():
                 )
 
                 st.success(
-                    "✅ Đã gửi đơn!"
+                    "✅ Đã gửi!"
                 )
-
-        index += 1
 
         # ==================================
         # PHẢN ÁNH
         # ==================================
 
-        with tbs[index]:
+        with t4:
 
             yk = st.text_area(
                 "Ý kiến phản ánh"
@@ -659,7 +754,7 @@ def main_app():
                     ),
 
                     "Trạng thái":
-                    "📨 Đã gửi",
+                    "Đã gửi",
 
                     "Ảnh":""
 
@@ -671,78 +766,46 @@ def main_app():
                 )
 
                 st.success(
-                    "✅ Đã gửi phản ánh!"
+                    "📩 Đã gửi!"
                 )
-
-            # hiện phản hồi
-            st.divider()
-
-            logs = load_data(
-                "nhat-ky.csv"
-            )
-
-            replies = [
-
-                i for i in logs
-
-                if i['Tên'] == user['name']
-
-                and
-
-                "BGH phản hồi" in
-                str(i['Trạng thái'])
-
-            ]
-
-            for r in replies:
-
-                st.info(
-                    r['Trạng thái']
-                )
-
-        index += 1
 
         # ==================================
         # SỰ KIỆN
         # ==================================
 
-        with tbs[index]:
+        with t5:
 
             st.subheader(
-                "🎉 Bảng tin sự kiện"
+                "📣 Bảng tin sự kiện"
             )
 
             ds_sk = load_data(
                 "su-kien.csv"
             )
 
-            for idx, sk in enumerate(
-                reversed(ds_sk)
-            ):
+            if ds_sk:
 
-                real_index = (
-                    len(ds_sk)-1-idx
-                )
-
-                with st.container(
-                    border=True
+                for idx, sk in enumerate(
+                    reversed(ds_sk)
                 ):
 
-                    st.markdown(
-                        f"### {sk['Tiêu đề']}"
-                    )
+                    with st.container(
+                        border=True
+                    ):
 
-                    st.caption(
-                        sk['Thời gian']
-                    )
+                        st.markdown(
+                            f"### {sk['Tiêu đề']}"
+                        )
 
-                    st.write(
-                        sk['Nội dung']
-                    )
+                        st.caption(
+                            sk['Thời gian']
+                        )
 
-                    if sk.get('Ảnh'):
+                        st.write(
+                            sk['Nội dung']
+                        )
 
-                        try:
+                        if sk.get('Ảnh'):
 
                             st.image(
                                 base64.b64decode(
@@ -751,440 +814,43 @@ def main_app():
                                 use_container_width=True
                             )
 
-                        except:
-                            pass
-
-                    likes = int(
-                        sk.get('Likes') or 0
-                    )
-
-                    if st.button(
-                        f"👍 Like ({likes})",
-                        key=f"lk_{real_index}"
-                    ):
-
-                        ds_sk[real_index][
-                            'Likes'
-                        ] = likes + 1
-
-                        save_all_data(
-                            "su-kien.csv",
-                            ds_sk
-                        )
-
-                        st.rerun()
-
-                    # comments
-                    try:
-
-                        comments = json.loads(
-                            sk.get(
-                                'Comments',
-                                "[]"
-                            )
-                        )
-
-                    except:
-                        comments = []
-
-                    for c in comments:
-
-                        st.markdown(
-                            f"💬 "
-                            f"**{c['user']}**:"
-                            f" {c['text']}"
-                        )
-
-                    with st.form(
-                        f"cmt_{real_index}",
-                        clear_on_submit=True
-                    ):
-
-                        txt = st.text_input(
-                            "Bình luận"
-                        )
-
-                        if st.form_submit_button(
-                            "Gửi"
-                        ):
-
-                            comments.append({
-
-                                "user":
-                                user['name'],
-
-                                "text":
-                                txt
-
-                            })
-
-                            ds_sk[real_index][
-                                'Comments'
-                            ] = json.dumps(
-                                comments,
-                                ensure_ascii=False
-                            )
-
-                            save_all_data(
-                                "su-kien.csv",
-                                ds_sk
-                            )
-
-                            st.success(
-                                "✅ Đã gửi bình luận!"
-                            )
-
-                            st.rerun()
-
-    # ======================================
-    # ADMIN BGH
-    # ======================================
-
-    elif user.get('role') == "admin_gv":
-
-        st.title(
-            "🏫 BAN GIÁM HIỆU"
-        )
-
-        nhat_ky = load_data(
-            "nhat-ky.csv"
-        )
-
-        tabs = st.tabs([
-
-            "📑 Đơn nghỉ",
-
-            "📸 Điểm danh",
-
-            "💬 Phản ánh",
-
-            "📢 Đăng bài"
-
-        ])
-
-        t_ng, t_dd, t_pa, t_sk = tabs
-
-        def render_admin(loai, msg):
-
-            for i, item in enumerate(
-                nhat_ky
-            ):
-
-                if item['Loại'] == loai:
-
-                    with st.container(
-                        border=True
-                    ):
-
-                        st.markdown(
-                            f"### 👤 {item['Tên']}"
-                        )
-
-                        st.write(
-                            item['Nội dung']
-                        )
-
-                        st.info(
-                            f"📌 {item['Trạng thái']}"
-                        )
-
-                        if item.get('Ảnh'):
-
-                            try:
-
-                                st.image(
-                                    base64.b64decode(
-                                        item['Ảnh']
-                                    ),
-                                    width=300
-                                )
-
-                            except:
-                                pass
-
-                        c1, c2 = st.columns(2)
-
-                        with c1:
-
-                            if st.button(
-                                "✅ Duyệt",
-                                key=f"d_{loai}_{i}"
-                            ):
-
-                                nhat_ky[i][
-                                    'Trạng thái'
-                                ] = msg
-
-                                save_all_data(
-                                    "nhat-ky.csv",
-                                    nhat_ky
-                                )
-
-                                st.success(
-                                    "✅ Đã duyệt!"
-                                )
-
-                                st.rerun()
-
-                        with c2:
-
-                            if st.button(
-                                "❌ Không duyệt",
-                                key=f"tc_{loai}_{i}"
-                            ):
-
-                                nhat_ky[i][
-                                    'Trạng thái'
-                                ] = "❌ Không duyệt"
-
-                                save_all_data(
-                                    "nhat-ky.csv",
-                                    nhat_ky
-                                )
-
-                                st.error(
-                                    "❌ Đã từ chối!"
-                                )
-
-                                st.rerun()
-
-        with t_ng:
-
-            render_admin(
-                "Xin nghỉ",
-                "✅ Đã duyệt nghỉ!"
-            )
-
-        with t_dd:
-
-            render_admin(
-                "Điểm danh",
-                "✅ Đã xác nhận điểm danh!"
-            )
-
-        with t_pa:
-
-            for i, item in enumerate(
-                nhat_ky
-            ):
-
-                if item['Loại']=="Phản ánh":
-
-                    with st.container(
-                        border=True
-                    ):
-
-                        st.markdown(
-                            f"### 💬 {item['Tên']}"
-                        )
-
-                        st.write(
-                            item['Nội dung']
-                        )
-
-                        st.info(
-                            item['Trạng thái']
-                        )
-
-                        rep = st.text_input(
-                            "Trả lời",
-                            key=f"rep_{i}"
-                        )
-
-                        c1, c2 = st.columns(2)
-
-                        with c1:
-
-                            if st.button(
-                                "📨 Gửi",
-                                key=f"r_{i}"
-                            ):
-
-                                nhat_ky[i][
-                                    'Trạng thái'
-                                ] = (
-                                    f"✅ BGH phản hồi:"
-                                    f" {rep}"
-                                )
-
-                                save_all_data(
-                                    "nhat-ky.csv",
-                                    nhat_ky
-                                )
-
-                                st.success(
-                                    "✅ Đã gửi!"
-                                )
-
-                                st.rerun()
-
-                        with c2:
-
-                            if st.button(
-                                "🗑️ Xóa",
-                                key=f"del_{i}"
-                            ):
-
-                                nhat_ky.pop(i)
-
-                                save_all_data(
-                                    "nhat-ky.csv",
-                                    nhat_ky
-                                )
-
-                                st.rerun()
-
-        with t_sk:
-
-            ds_sk = load_data(
-                "su-kien.csv"
-            )
-
-            with st.form("new_post"):
-
-                tt = st.text_input(
-                    "Tiêu đề"
-                )
-
-                nd = st.text_area(
-                    "Nội dung"
-                )
-
-                im = st.file_uploader(
-                    "Ảnh",
-                    type=['jpg','png','jpeg']
-                )
-
-                if st.form_submit_button(
-                    "🚀 Đăng bài"
-                ):
-
-                    ds_sk.append({
-
-                        "Tiêu đề":tt,
-
-                        "Nội dung":nd,
-
-                        "Ảnh":
-                        image_to_base64(im),
-
-                        "Thời gian":
-                        datetime.now().strftime(
-                            "%H:%M %d/%m"
-                        ),
-
-                        "Likes":0,
-
-                        "Comments":"[]"
-
-                    })
-
-                    save_all_data(
-                        "su-kien.csv",
-                        ds_sk
-                    )
-
-                    st.success(
-                        "✅ Đã đăng!"
-                    )
-
-                    st.rerun()
-
-            st.divider()
+        # ==================================
+        # THỜI KHÓA BIỂU
+        # ==================================
+
+        with t6:
 
             st.subheader(
-                "📰 Lịch sử bài đăng"
+                "📅 Thời khóa biểu"
             )
 
-            for idx, sk in enumerate(
-                reversed(ds_sk)
-            ):
+            tkb = load_data(
+                "thoikhoabieu.csv"
+            )
 
-                real_index = (
-                    len(ds_sk)-1-idx
+            tkb_lop = [
+
+                i for i in tkb
+
+                if i['Lớp'] == user['class']
+
+            ]
+
+            if tkb_lop:
+
+                st.dataframe(
+                    pd.DataFrame(tkb_lop),
+                    use_container_width=True
                 )
 
-                with st.container(
-                    border=True
-                ):
+            else:
 
-                    st.markdown(
-                        f"### {sk['Tiêu đề']}"
-                    )
-
-                    st.write(
-                        sk['Nội dung']
-                    )
-
-                    if sk.get('Ảnh'):
-
-                        try:
-
-                            st.image(
-                                base64.b64decode(
-                                    sk['Ảnh']
-                                ),
-                                use_container_width=True
-                            )
-
-                        except:
-                            pass
-
-                    if st.button(
-                        "🗑️ Xóa bài đăng",
-                        key=f"del_post_{real_index}"
-                    ):
-
-                        ds_sk.pop(
-                            real_index
-                        )
-
-                        save_all_data(
-                            "su-kien.csv",
-                            ds_sk
-                        )
-
-                        st.success(
-                            "✅ Đã xóa bài!"
-                        )
-
-                        st.rerun()
-
-    # ======================================
-    # ADMIN BÁN TRÚ
-    # ======================================
-
-    elif user.get('role') == "admin_an":
-
-        st.title(
-            "🍱 QUẢN LÝ BÁN TRÚ"
-        )
-
-        ds = [
-
-            i for i in load_data(
-                "nhat-ky.csv"
-            )
-
-            if i['Loại']=="Báo ăn"
-
-        ]
-
-        if ds:
-
-            st.dataframe(
-                pd.DataFrame(ds),
-                use_container_width=True
-            )
-
-        else:
-
-            st.info(
-                "Chưa có dữ liệu."
-            )
+                st.info(
+                    "Chưa có thời khóa biểu."
+                )
 
 # ==========================================
-# NAVIGATION
+# ĐIỀU HƯỚNG
 # ==========================================
 
 if not st.session_state.logged_in:
