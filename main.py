@@ -632,33 +632,34 @@ def main_app():
                 st.success(
                     "✅ Đã gửi đơn!"
                 )
-            # hiện phản hồi
-            st.divider()
+        # ================================
+# LỊCH SỬ ĐƠN XIN NGHỈ
+# ================================
 
-            logs = load_data(
-                "nhat-ky.csv"
-            )
+st.divider()
 
-            replies = [
+st.subheader("📌 Lịch sử đơn xin nghỉ")
 
-                i for i in logs
+logs = load_data("nhat-ky.csv")
 
-                if i['Tên'] == user['name']
+my_requests = [
+    i for i in logs
+    if i.get("Tên") == user["name"]
+    and i.get("Loại") == "Xin nghỉ"
+]
 
-                and
+if my_requests:
 
-                "BGH phản hồi" in
-                str(i['Trạng thái'])
+    for r in reversed(my_requests):
 
-            ]
+        st.info(
+            f"📄 Nội dung: {r.get('Nội dung','')}\n\n"
+            f"📌 Trạng thái: {r.get('Trạng thái','')}\n"
+            f"🕒 {r.get('Thời gian','')}"
+        )
 
-            for r in replies:
-
-                st.info(
-                    r['Trạng thái']
-                )
-
-        index += 1
+else:
+    st.warning("Chưa có đơn nào.")
 
         # ==================================
         # PHẢN ÁNH
