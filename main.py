@@ -1,8 +1,6 @@
 # ==========================================
 # THPT MÙ CANG CHẢI - SMART SCHOOL SYSTEM
-# BẢN ĐÃ THÊM:
-# ✅ BÁN TRÚ / NGOẠI TRÚ
-# ✅ NGOẠI TRÚ KHÔNG CÓ TAB HỦY BỮA
+# FULL VERSION
 # ==========================================
 
 import streamlit as st
@@ -326,6 +324,7 @@ def login_page():
         "ĐĂNG NHẬP"
     ):
 
+        # ADMIN BGH
         if (
             u_in == "thptmcc_admin"
             and
@@ -343,6 +342,7 @@ def login_page():
 
             st.rerun()
 
+        # ADMIN BÁN TRÚ
         elif (
             u_in == "bantru_mcc"
             and
@@ -413,12 +413,31 @@ def main_app():
 
     user = st.session_state.user_info
 
+    # ======================================
+    # SIDEBAR
+    # ======================================
+
+    if user.get("avatar"):
+
+        st.sidebar.image(
+            base64.b64decode(
+                user['avatar']
+            ),
+            width=120
+        )
+
     st.sidebar.title(
         f"👤 {user['name']}"
     )
 
-    st.sidebar.write(
-        f"🎓 {user.get('student_type', '')}"
+    st.sidebar.success(
+        f"🎓 {user.get('student_type','')}"
+    )
+
+    st.sidebar.info(
+        datetime.now().strftime(
+            "🕒 %H:%M %d/%m/%Y"
+        )
     )
 
     if st.sidebar.button(
@@ -435,10 +454,36 @@ def main_app():
 
     if user.get('role') == "student":
 
-        st.title("🎓 CỔNG HỌC SINH")
+        st.markdown("""
+        <h2 style='color:#1565C0'>
+        🎓 CỔNG HỌC SINH
+        </h2>
+        """, unsafe_allow_html=True)
+
+        c1, c2, c3 = st.columns(3)
+
+        with c1:
+            st.metric(
+                "📸 Điểm danh",
+                "Hoạt động"
+            )
+
+        with c2:
+            st.metric(
+                "🍱 Loại",
+                user.get("student_type","")
+            )
+
+        with c3:
+            st.metric(
+                "🎉 Sự kiện",
+                len(load_data("su-kien.csv"))
+            )
+
+        st.divider()
 
         # ==========================
-        # TABS
+        # TAB BÁN TRÚ / NGOẠI TRÚ
         # ==========================
 
         if user.get("student_type") == "Bán trú":
@@ -470,20 +515,24 @@ def main_app():
 
             t1, t3, t4, t5, t6 = tabs
 
-        # ==========================
+        # ==================================
         # ĐIỂM DANH
-        # ==========================
+        # ==================================
 
         with t1:
 
-            st.subheader("📸 Điểm danh")
+            st.subheader(
+                "📸 Điểm danh AI"
+            )
 
             a_dd = st.camera_input(
                 "Chụp khuôn mặt"
             )
 
-            if a_dd and st.button(
-                "GỬI ĐIỂM DANH"
+            if (
+                a_dd
+                and
+                st.button("GỬI ĐIỂM DANH")
             ):
 
                 with st.spinner(
@@ -492,71 +541,138 @@ def main_app():
 
                     time.sleep(2)
 
-                st.success(
-                    "✅ Điểm danh thành công!"
+                data = load_data(
+                    "nhat-ky.csv"
                 )
 
-        # ==========================
+                data.append({
+
+                    "Loại":"Điểm danh",
+
+                    "Lớp":user['class'],
+
+                    "Tên":user['name'],
+
+                    "Nội dung":"Có mặt",
+
+                    "Thời gian":
+                    datetime.now().strftime(
+                        "%H:%M %d/%m"
+                    ),
+
+                    "Trạng thái":
+                    "⏳ Chờ duyệt",
+
+                    "Ảnh":
+                    image_to_base64(a_dd)
+
+                })
+
+                save_all_data(
+                    "nhat-ky.csv",
+                    data
+                )
+
+                st.success(
+                    "🤖 AI nhận diện thành công!"
+                )
+
+        # ==================================
         # HỦY BỮA
-        # ==========================
+        # ==================================
 
         if user.get("student_type") == "Bán trú":
 
             with t2:
 
-                st.subheader(
-                    "🍱 Hủy bữa"
+                st.error(
+                    "🚫 Hủy Trưa trước 09h | "
+                    "Hủy Chiều trước 15h"
                 )
 
-                st.info(
-                    "Chỉ học sinh bán trú mới có mục này."
+                thu = st.selectbox(
+                    "Ngày báo hủy",
+                    [
+                        "Thứ 2",
+                        "Thứ 3",
+                        "Thứ 4",
+                        "Thứ 5",
+                        "Thứ 6"
+                    ]
                 )
 
-        # ==========================
+                buoi = st.multiselect(
+                    "Buổi muốn hủy",
+                    [
+                        "Bữa Trưa",
+                        "Bữa Chiều"
+                    ],
+                    default=["Bữa Trưa"]
+                )
+
+                if st.button(
+                    "Xác nhận Hủy"
+                ):
+
+                    st.success(
+                        "✅ Đã báo hủy!"
+                    )
+
+        # ==================================
         # XIN NGHỈ
-        # ==========================
+        # ==================================
 
         with t3:
 
-            st.subheader(
-                "📝 Xin nghỉ"
-            )
-
-            st.text_area(
+            ly_do = st.text_area(
                 "Lý do nghỉ"
             )
 
-        # ==========================
+            a_ng = st.camera_input(
+                "Ảnh minh chứng"
+            )
+
+            if st.button("Gửi đơn"):
+
+                st.success(
+                    "✅ Đã gửi đơn!"
+                )
+
+        # ==================================
         # PHẢN ÁNH
-        # ==========================
+        # ==================================
 
         with t4:
 
-            st.subheader(
-                "💬 Phản ánh"
-            )
-
-            st.text_area(
+            yk = st.text_area(
                 "Ý kiến phản ánh"
             )
 
-        # ==========================
+            if st.button(
+                "Gửi phản ánh"
+            ):
+
+                st.success(
+                    "📩 Đã gửi!"
+                )
+
+        # ==================================
         # SỰ KIỆN
-        # ==========================
+        # ==================================
 
         with t5:
 
             st.subheader(
-                "🎉 Sự kiện"
+                "📣 Bảng tin sự kiện"
             )
 
             st.info(
                 "Chưa có sự kiện."
             )
 
-        # ==========================
-        # TKB
-        # ==========================
+        # ==================================
+        # THỜI KHÓA BIỂU
+        # ==================================
 
         with t6:
 
@@ -565,8 +681,98 @@ def main_app():
             )
 
             st.info(
-                "Chưa có dữ liệu."
+                "Chưa có thời khóa biểu."
             )
+
+    # ======================================
+    # ADMIN BGH
+    # ======================================
+
+    elif user.get('role') == "admin_gv":
+
+        st.title(
+            "🏫 BẢNG ĐIỀU KHIỂN BAN GIÁM HIỆU"
+        )
+
+        st.success(
+            "✅ Hệ thống đang hoạt động"
+        )
+
+        c1, c2, c3 = st.columns(3)
+
+        with c1:
+            st.metric(
+                "📑 Đơn nghỉ",
+                "0"
+            )
+
+        with c2:
+            st.metric(
+                "📸 Điểm danh",
+                "0"
+            )
+
+        with c3:
+            st.metric(
+                "💬 Phản ánh",
+                "0"
+            )
+
+        st.divider()
+
+        tabs = st.tabs([
+
+            "📑 Đơn nghỉ",
+            "📸 Điểm danh",
+            "💬 Phản ánh",
+            "📢 Đăng bài"
+
+        ])
+
+        t_ng, t_dd, t_pa, t_sk = tabs
+
+        with t_ng:
+            st.info("Chưa có đơn nghỉ")
+
+        with t_dd:
+            st.info("Chưa có dữ liệu điểm danh")
+
+        with t_pa:
+            st.info("Chưa có phản ánh")
+
+        with t_sk:
+
+            with st.form("new_post"):
+
+                tt = st.text_input(
+                    "Tiêu đề"
+                )
+
+                nd = st.text_area(
+                    "Nội dung"
+                )
+
+                if st.form_submit_button(
+                    "🚀 Đăng bài"
+                ):
+
+                    st.success(
+                        "✅ Đăng bài thành công!"
+                    )
+
+    # ======================================
+    # ADMIN BÁN TRÚ
+    # ======================================
+
+    elif user.get('role') == "admin_an":
+
+        st.title(
+            "🍱 QUẢN LÝ BÁN TRÚ"
+        )
+
+        st.info(
+            "Danh sách học sinh hủy bữa sẽ hiện ở đây."
+        )
 
 # ==========================================
 # ĐIỀU HƯỚNG
