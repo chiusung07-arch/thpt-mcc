@@ -33,7 +33,7 @@ st.markdown("""
 }
 
 .block-container {
-    padding-top: 1.5rem;
+    padding-top: 1rem;
 }
 
 .stButton > button {
@@ -80,7 +80,7 @@ def image_to_base64(image_file):
 
     return ""
 
-@st.cache_data(ttl=2)
+@st.cache_data(ttl=1)
 def load_data(file_name):
 
     try:
@@ -127,7 +127,7 @@ for f in [
                     "class",
                     "role",
                     "avatar",
-                    "loai_hs"
+                    "he"
                 ]
             ).to_csv(f, index=False)
 
@@ -192,9 +192,7 @@ def registration_page():
 
     with st.form("reg_form"):
 
-        name = st.text_input(
-            "Họ và tên học sinh"
-        )
+        name = st.text_input("Họ và tên")
 
         classes = (
             [f"10A{i}" for i in range(1,10)] +
@@ -203,15 +201,15 @@ def registration_page():
         )
 
         lop = st.selectbox(
-            "Lớp học",
+            "Lớp",
             classes
         )
 
-        loai_hs = st.selectbox(
-            "Loại học sinh",
+        he = st.selectbox(
+            "Hệ học sinh",
             [
-                "Học sinh bán trú",
-                "Học sinh ngoại trú"
+                "Bán trú",
+                "Ngoại trú"
             ]
         )
 
@@ -220,9 +218,7 @@ def registration_page():
             type=['jpg','png']
         )
 
-        u_id = st.text_input(
-            "Tài khoản"
-        )
+        u_id = st.text_input("Tài khoản")
 
         pwd = st.text_input(
             "Mật khẩu",
@@ -272,8 +268,7 @@ def registration_page():
                         "avatar":
                         image_to_base64(avatar),
 
-                        "loai_hs":
-                        loai_hs
+                        "he": he
 
                     })
 
@@ -317,9 +312,7 @@ def login_page():
         type="password"
     )
 
-    if st.button(
-        "ĐĂNG NHẬP"
-    ):
+    if st.button("ĐĂNG NHẬP"):
 
         # ADMIN BGH
         if (
@@ -394,9 +387,7 @@ def login_page():
                     "❌ Sai thông tin!"
                 )
 
-    if st.button(
-        "Đăng ký mới"
-    ):
+    if st.button("Đăng ký mới"):
 
         st.session_state.page = "register"
 
@@ -427,17 +418,20 @@ def main_app():
         f"👤 {user['name']}"
     )
 
+    st.sidebar.success(
+        f"🏫 {user.get('class','')}"
+    )
+
+    if user.get("he"):
+        st.sidebar.info(
+            f"📌 {user['he']}"
+        )
+
     st.sidebar.info(
         datetime.now().strftime(
             "🕒 %H:%M %d/%m/%Y"
         )
     )
-
-    if user.get("role") == "student":
-
-        st.sidebar.success(
-            user.get("loai_hs","")
-        )
 
     if st.sidebar.button(
         "ĐĂNG XUẤT"
@@ -454,13 +448,16 @@ def main_app():
     if user.get('role') == "student":
 
         st.markdown("""
-        <h1 style='color:#1565C0'>
+        <h2 style='color:#1565C0'>
         🎓 CỔNG HỌC SINH
-        </h1>
+        </h2>
         """, unsafe_allow_html=True)
 
         # THÔNG BÁO
-        nhat_ky_all = load_data("nhat-ky.csv")
+
+        nhat_ky_all = load_data(
+            "nhat-ky.csv"
+        )
 
         thong_bao = [
 
@@ -475,21 +472,42 @@ def main_app():
                 or
                 "❌" in str(i['Trạng thái'])
             )
-
         ]
 
         if thong_bao:
 
-            st.subheader("🔔 Thông báo mới")
+            st.subheader("🔔 Thông báo")
 
             for tb in reversed(thong_bao[-5:]):
 
                 st.info(
-                    f"{tb['Loại']} • "
-                    f"{tb['Trạng thái']}"
+                    f"{tb['Trạng thái']} • "
+                    f"{tb['Thời gian']}"
                 )
 
-        tabs_list = [
+        c1, c2, c3 = st.columns(3)
+
+        with c1:
+            st.metric(
+                "📸 Điểm danh",
+                "Hoạt động"
+            )
+
+        with c2:
+            st.metric(
+                "🎉 Sự kiện",
+                len(load_data("su-kien.csv"))
+            )
+
+        with c3:
+            st.metric(
+                "📚 Học sinh",
+                user.get("he","")
+            )
+
+        st.divider()
+
+        tab_list = [
 
             "📸 Điểm danh",
             "📝 Xin nghỉ",
@@ -499,22 +517,18 @@ def main_app():
 
         ]
 
-        if user.get("loai_hs") == "Học sinh bán trú":
+        if user.get("he") == "Bán trú":
+            tab_list.insert(1, "🍱 Hủy bữa")
 
-            tabs_list.insert(
-                1,
-                "🍱 Hủy bữa"
-            )
+        tabs = st.tabs(tab_list)
 
-        tabs = st.tabs(tabs_list)
-
-        current_index = 0
+        current = 0
 
         # ==================================
         # ĐIỂM DANH
         # ==================================
 
-        with tabs[current_index]:
+        with tabs[current]:
 
             st.subheader(
                 "📸 Điểm danh AI"
@@ -556,7 +570,7 @@ def main_app():
                     ),
 
                     "Trạng thái":
-                    "⏳ Chờ duyệt",
+                    "⏳ Đã gửi điểm danh",
 
                     "Ảnh":
                     image_to_base64(a_dd)
@@ -569,18 +583,18 @@ def main_app():
                 )
 
                 st.success(
-                    "🤖 Đã gửi điểm danh!"
+                    "✅ Đã gửi điểm danh!"
                 )
 
-        current_index += 1
+        current += 1
 
         # ==================================
         # HỦY BỮA
         # ==================================
 
-        if user.get("loai_hs") == "Học sinh bán trú":
+        if user.get("he") == "Bán trú":
 
-            with tabs[current_index]:
+            with tabs[current]:
 
                 st.error(
                     "🚫 Hủy Trưa trước 09h | "
@@ -647,15 +661,13 @@ def main_app():
                         "✅ Đã báo hủy!"
                     )
 
-            current_index += 1
+            current += 1
 
         # ==================================
         # XIN NGHỈ
         # ==================================
 
-        with tabs[current_index]:
-
-            st.subheader("📝 Xin nghỉ")
+        with tabs[current]:
 
             ly_do = st.text_area(
                 "Lý do nghỉ"
@@ -687,7 +699,7 @@ def main_app():
                     ),
 
                     "Trạng thái":
-                    "⏳ Chờ duyệt",
+                    "⏳ Đã gửi đơn",
 
                     "Ảnh":
                     image_to_base64(a_ng)
@@ -703,15 +715,13 @@ def main_app():
                     "✅ Đã gửi đơn!"
                 )
 
-        current_index += 1
+        current += 1
 
         # ==================================
         # PHẢN ÁNH
         # ==================================
 
-        with tabs[current_index]:
-
-            st.subheader("💬 Phản ánh")
+        with tabs[current]:
 
             yk = st.text_area(
                 "Ý kiến phản ánh"
@@ -741,7 +751,7 @@ def main_app():
                     ),
 
                     "Trạng thái":
-                    "✅ Đã gửi phản ánh",
+                    "📨 Đã gửi phản ánh",
 
                     "Ảnh":""
 
@@ -753,16 +763,16 @@ def main_app():
                 )
 
                 st.success(
-                    "📩 Đã gửi phản ánh!"
+                    "📨 Đã gửi phản ánh!"
                 )
 
-        current_index += 1
+        current += 1
 
         # ==================================
         # SỰ KIỆN
         # ==================================
 
-        with tabs[current_index]:
+        with tabs[current]:
 
             st.subheader(
                 "📣 Bảng tin sự kiện"
@@ -825,6 +835,10 @@ def main_app():
                                 ds_sk
                             )
 
+                            st.success(
+                                "👍 Đã thích!"
+                            )
+
                             st.rerun()
 
                         raw_comments = sk.get(
@@ -849,7 +863,8 @@ def main_app():
                         for c in comments[-10:]:
 
                             st.markdown(
-                                f"**{c['user']}**: {c['text']}"
+                                f"**{c['user']}**: "
+                                f"{c['text']}"
                             )
 
                         with st.form(
@@ -857,55 +872,51 @@ def main_app():
                             clear_on_submit=True
                         ):
 
-                            new_com = st.text_area(
+                            new_com = st.text_input(
                                 "Nhập bình luận..."
                             )
 
                             if st.form_submit_button(
-                                "Gửi bình luận ✈️"
+                                "Gửi ✈️"
                             ):
 
-                                comments.append({
+                                if new_com.strip():
 
-                                    "user":
-                                    user['name'],
+                                    comments.append({
 
-                                    "text":
-                                    new_com
+                                        "user":
+                                        user['name'],
 
-                                })
+                                        "text":
+                                        new_com
 
-                                ds_sk[r_idx][
-                                    'Comments'
-                                ] = json.dumps(
-                                    comments,
-                                    ensure_ascii=False
-                                )
+                                    })
 
-                                save_all_data(
-                                    "su-kien.csv",
-                                    ds_sk
-                                )
+                                    ds_sk[r_idx][
+                                        'Comments'
+                                    ] = json.dumps(
+                                        comments,
+                                        ensure_ascii=False
+                                    )
 
-                                st.success(
-                                    "✅ Đã gửi bình luận!"
-                                )
+                                    save_all_data(
+                                        "su-kien.csv",
+                                        ds_sk
+                                    )
 
-                                st.rerun()
+                                    st.success(
+                                        "💬 Đã bình luận!"
+                                    )
 
-            else:
+                                    st.rerun()
 
-                st.info(
-                    "Chưa có sự kiện."
-                )
-
-        current_index += 1
+        current += 1
 
         # ==================================
         # THỜI KHÓA BIỂU
         # ==================================
 
-        with tabs[current_index]:
+        with tabs[current]:
 
             st.subheader(
                 "📅 Thời khóa biểu"
@@ -946,10 +957,6 @@ def main_app():
             "🏫 BẢNG ĐIỀU KHIỂN BAN GIÁM HIỆU"
         )
 
-        st.success(
-            "✅ Hệ thống đang hoạt động"
-        )
-
         nhat_ky = load_data(
             "nhat-ky.csv"
         )
@@ -957,6 +964,37 @@ def main_app():
         ds_sk = load_data(
             "su-kien.csv"
         )
+
+        c1, c2, c3 = st.columns(3)
+
+        with c1:
+            st.metric(
+                "📑 Xin nghỉ",
+                len([
+                    i for i in nhat_ky
+                    if i['Loại']=="Xin nghỉ"
+                ])
+            )
+
+        with c2:
+            st.metric(
+                "📸 Điểm danh",
+                len([
+                    i for i in nhat_ky
+                    if i['Loại']=="Điểm danh"
+                ])
+            )
+
+        with c3:
+            st.metric(
+                "💬 Phản ánh",
+                len([
+                    i for i in nhat_ky
+                    if i['Loại']=="Phản ánh"
+                ])
+            )
+
+        st.divider()
 
         tabs = st.tabs([
 
@@ -975,54 +1013,55 @@ def main_app():
 
         with t_ng:
 
-            ds_nghi = [
-                i for i in nhat_ky
-                if i['Loại']=="Xin nghỉ"
-            ]
+            for i, item in enumerate(
+                nhat_ky
+            ):
 
-            if ds_nghi:
-
-                for i, item in enumerate(ds_nghi):
+                if item['Loại']=="Xin nghỉ":
 
                     with st.container(border=True):
 
-                        st.subheader(item['Tên'])
+                        st.markdown(
+                            f"### 👤 {item['Tên']}"
+                        )
 
-                        st.write(item['Nội dung'])
+                        st.write(
+                            item['Nội dung']
+                        )
 
-                        st.caption(item['Thời gian'])
+                        st.info(
+                            item['Trạng thái']
+                        )
 
-                        if item.get("Ảnh"):
+                        if item.get('Ảnh'):
 
                             st.image(
                                 base64.b64decode(
                                     item['Ảnh']
                                 ),
-                                use_container_width=True
+                                width=300
                             )
 
-                        c1,c2 = st.columns(2)
+                        c1, c2 = st.columns(2)
 
                         with c1:
 
                             if st.button(
                                 "✅ Duyệt",
-                                key=f"duyet_nghi_{i}"
+                                key=f"dng_{i}"
                             ):
 
-                                for n in nhat_ky:
-
-                                    if (
-                                        n['Tên']==item['Tên']
-                                        and
-                                        n['Thời gian']==item['Thời gian']
-                                    ):
-
-                                        n['Trạng thái'] = "✅ Đã duyệt nghỉ"
+                                nhat_ky[i]['Trạng thái'] = (
+                                    "✅ Đã duyệt đơn nghỉ"
+                                )
 
                                 save_all_data(
                                     "nhat-ky.csv",
                                     nhat_ky
+                                )
+
+                                st.success(
+                                    "✅ Đã duyệt!"
                                 )
 
                                 st.rerun()
@@ -1031,29 +1070,23 @@ def main_app():
 
                             if st.button(
                                 "❌ Không duyệt",
-                                key=f"khongduyet_nghi_{i}"
+                                key=f"kng_{i}"
                             ):
 
-                                for n in nhat_ky:
-
-                                    if (
-                                        n['Tên']==item['Tên']
-                                        and
-                                        n['Thời gian']==item['Thời gian']
-                                    ):
-
-                                        n['Trạng thái'] = "❌ Không duyệt"
+                                nhat_ky[i]['Trạng thái'] = (
+                                    "❌ Không duyệt đơn nghỉ"
+                                )
 
                                 save_all_data(
                                     "nhat-ky.csv",
                                     nhat_ky
                                 )
 
+                                st.error(
+                                    "❌ Đã từ chối!"
+                                )
+
                                 st.rerun()
-
-            else:
-
-                st.info("Chưa có đơn nghỉ")
 
         # ==================================
         # ĐIỂM DANH
@@ -1061,52 +1094,51 @@ def main_app():
 
         with t_dd:
 
-            ds_dd = [
-                i for i in nhat_ky
-                if i['Loại']=="Điểm danh"
-            ]
+            for i, item in enumerate(
+                nhat_ky
+            ):
 
-            if ds_dd:
-
-                for i, item in enumerate(ds_dd):
+                if item['Loại']=="Điểm danh":
 
                     with st.container(border=True):
 
-                        st.subheader(item['Tên'])
+                        st.markdown(
+                            f"### 👤 {item['Tên']}"
+                        )
 
-                        st.caption(item['Thời gian'])
+                        st.info(
+                            item['Trạng thái']
+                        )
 
-                        if item.get("Ảnh"):
+                        if item.get('Ảnh'):
 
                             st.image(
                                 base64.b64decode(
                                     item['Ảnh']
                                 ),
-                                use_container_width=True
+                                width=350
                             )
 
-                        c1,c2 = st.columns(2)
+                        c1, c2 = st.columns(2)
 
                         with c1:
 
                             if st.button(
-                                "✅ Duyệt điểm danh",
-                                key=f"duyet_dd_{i}"
+                                "✅ Duyệt",
+                                key=f"ddd_{i}"
                             ):
 
-                                for n in nhat_ky:
-
-                                    if (
-                                        n['Tên']==item['Tên']
-                                        and
-                                        n['Thời gian']==item['Thời gian']
-                                    ):
-
-                                        n['Trạng thái'] = "✅ Đã xác nhận điểm danh"
+                                nhat_ky[i]['Trạng thái'] = (
+                                    "✅ Đã duyệt điểm danh"
+                                )
 
                                 save_all_data(
                                     "nhat-ky.csv",
                                     nhat_ky
+                                )
+
+                                st.success(
+                                    "✅ Đã duyệt!"
                                 )
 
                                 st.rerun()
@@ -1115,29 +1147,23 @@ def main_app():
 
                             if st.button(
                                 "❌ Không duyệt",
-                                key=f"khongduyet_dd_{i}"
+                                key=f"kdd_{i}"
                             ):
 
-                                for n in nhat_ky:
-
-                                    if (
-                                        n['Tên']==item['Tên']
-                                        and
-                                        n['Thời gian']==item['Thời gian']
-                                    ):
-
-                                        n['Trạng thái'] = "❌ Điểm danh thất bại"
+                                nhat_ky[i]['Trạng thái'] = (
+                                    "❌ Không duyệt điểm danh"
+                                )
 
                                 save_all_data(
                                     "nhat-ky.csv",
                                     nhat_ky
                                 )
 
+                                st.error(
+                                    "❌ Không duyệt!"
+                                )
+
                                 st.rerun()
-
-            else:
-
-                st.info("Chưa có dữ liệu điểm danh")
 
         # ==================================
         # PHẢN ÁNH
@@ -1145,42 +1171,39 @@ def main_app():
 
         with t_pa:
 
-            ds_pa = [
-                i for i in nhat_ky
-                if i['Loại']=="Phản ánh"
-            ]
+            for i, item in enumerate(
+                nhat_ky
+            ):
 
-            if ds_pa:
-
-                for i, item in enumerate(ds_pa):
+                if item['Loại']=="Phản ánh":
 
                     with st.container(border=True):
 
-                        st.subheader(item['Tên'])
+                        st.markdown(
+                            f"### 💬 {item['Tên']}"
+                        )
 
-                        st.write(item['Nội dung'])
+                        st.write(
+                            item['Nội dung']
+                        )
 
-                        rep = st.text_area(
-                            "Trả lời học sinh",
-                            key=f"traloi_{i}"
+                        st.info(
+                            item['Trạng thái']
+                        )
+
+                        rep = st.text_input(
+                            "Trả lời",
+                            key=f"rep_{i}"
                         )
 
                         if st.button(
                             "📨 Gửi phản hồi",
-                            key=f"gui_pa_{i}"
+                            key=f"r_{i}"
                         ):
 
-                            for n in nhat_ky:
-
-                                if (
-                                    n['Tên']==item['Tên']
-                                    and
-                                    n['Thời gian']==item['Thời gian']
-                                ):
-
-                                    n['Trạng thái'] = (
-                                        f"✅ BGH phản hồi: {rep}"
-                                    )
+                            nhat_ky[i]['Trạng thái'] = (
+                                f"✅ Nhà trường phản hồi: {rep}"
+                            )
 
                             save_all_data(
                                 "nhat-ky.csv",
@@ -1193,10 +1216,6 @@ def main_app():
 
                             st.rerun()
 
-            else:
-
-                st.info("Chưa có phản ánh")
-
         # ==================================
         # ĐĂNG BÀI
         # ==================================
@@ -1204,10 +1223,10 @@ def main_app():
         with t_sk:
 
             st.subheader(
-                "📢 Đăng sự kiện"
+                "📢 Đăng bài sự kiện"
             )
 
-            with st.form("dang_su_kien"):
+            with st.form("new_post"):
 
                 tt = st.text_input(
                     "Tiêu đề"
@@ -1218,8 +1237,8 @@ def main_app():
                 )
 
                 im = st.file_uploader(
-                    "Tải ảnh lên",
-                    type=['jpg','png','jpeg']
+                    "Ảnh sự kiện",
+                    type=['jpg','png']
                 )
 
                 if st.form_submit_button(
@@ -1260,43 +1279,37 @@ def main_app():
             st.divider()
 
             st.subheader(
-                "🗂️ Lịch sử đăng bài"
+                "📰 Lịch sử đăng bài"
             )
 
-            if ds_sk:
+            for i, sk in enumerate(
+                reversed(ds_sk)
+            ):
 
-                for i, sk in enumerate(
-                    reversed(ds_sk)
+                with st.container(
+                    border=True
                 ):
 
-                    with st.container(border=True):
+                    st.markdown(
+                        f"### {sk['Tiêu đề']}"
+                    )
 
-                        st.markdown(
-                            f"### {sk['Tiêu đề']}"
+                    st.caption(
+                        sk['Thời gian']
+                    )
+
+                    st.write(
+                        sk['Nội dung']
+                    )
+
+                    if sk.get('Ảnh'):
+
+                        st.image(
+                            base64.b64decode(
+                                sk['Ảnh']
+                            ),
+                            width=400
                         )
-
-                        st.caption(
-                            sk['Thời gian']
-                        )
-
-                        st.write(
-                            sk['Nội dung']
-                        )
-
-                        if sk.get('Ảnh'):
-
-                            st.image(
-                                base64.b64decode(
-                                    sk['Ảnh']
-                                ),
-                                use_container_width=True
-                            )
-
-            else:
-
-                st.info(
-                    "Chưa có bài đăng"
-                )
 
     # ======================================
     # ADMIN BÁN TRÚ
