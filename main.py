@@ -9,82 +9,54 @@ import os
 import base64
 import json
 import hashlib
-import time
 
 # ==========================================
 # CONFIG
 # ==========================================
 
-st.set_page_config(
-    page_title="THPT Mù Cang Chải",
-    page_icon="🏫",
-    layout="wide"
-)
+st.set_page_config("THPT Mù Cang Chải", "🏫", layout="wide")
 
 # ==========================================
-# FUNCTIONS
+# FUNCTION
 # ==========================================
 
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+def hash_pw(p): return hashlib.sha256(p.encode()).hexdigest()
 
-def image_to_base64(image_file):
-    if image_file:
-        try:
-            return base64.b64encode(image_file.getvalue()).decode()
-        except:
-            return ""
-    return ""
+def img64(f):
+    return base64.b64encode(f.getvalue()).decode() if f else ""
 
-def load_data(file_name):
+def load(f):
     try:
-        df = pd.read_csv(file_name)
-        return df.where(pd.notnull(df), None).to_dict("records")
+        return pd.read_csv(f).fillna("").to_dict("records")
     except:
         return []
 
-def save_all_data(file_name, data):
-    pd.DataFrame(data).to_csv(file_name, index=False)
+def save(f, d):
+    pd.DataFrame(d).to_csv(f, index=False)
 
 # ==========================================
-# CREATE FILES
+# FILE INIT
 # ==========================================
 
-for f in [
-    "hoc-sinh.csv",
-    "nhat-ky.csv",
-    "su-kien.csv",
-    "thong-bao.csv"
-]:
+files = ["users.csv", "log.csv", "event.csv", "notice.csv"]
 
+for f in files:
     if not os.path.exists(f):
-
-        if f == "hoc-sinh.csv":
-            pd.DataFrame(columns=[
-                "username","password","name","class","role","avatar","loai_hs"
-            ]).to_csv(f, index=False)
-
-        elif f == "su-kien.csv":
-            pd.DataFrame(columns=[
-                "Tiêu đề","Nội dung","Ảnh","Thời gian","Likes","Comments"
-            ]).to_csv(f, index=False)
-
-        elif f == "thong-bao.csv":
-            pd.DataFrame(columns=[
-                "Tiêu đề","Nội dung","Thời gian"
-            ]).to_csv(f, index=False)
-
+        if f == "users.csv":
+            pd.DataFrame(columns=["username","password","name","class","role","avatar","type"]).to_csv(f,index=False)
+        elif f == "notice.csv":
+            pd.DataFrame(columns=["title","content","time"]).to_csv(f,index=False)
+        elif f == "event.csv":
+            pd.DataFrame(columns=["title","content","img","time","like","cmt"]).to_csv(f,index=False)
         else:
-            pd.DataFrame(columns=[
-                "Loại","Lớp","Tên","Nội dung","Thời gian","Trạng thái","Ảnh"
-            ]).to_csv(f, index=False)
+            pd.DataFrame(columns=["type","class","name","content","time","status","img"]).to_csv(f,index=False)
 
 # ==========================================
 # SESSION
 # ==========================================
 
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+if "login" not in st.session_state:
+    st.session_state.login = False
 
 if "page" not in st.session_state:
     st.session_state.page = "login"
@@ -93,90 +65,85 @@ if "page" not in st.session_state:
 # REGISTER
 # ==========================================
 
-def registration_page():
+def register():
+    st.title("📝 Đăng ký")
 
-    st.title("📝 ĐĂNG KÝ")
+    with st.form("r"):
+        name = st.text_input("Tên")
+        cls = st.text_input("Lớp")
 
-    with st.form("reg"):
+        utype = st.selectbox("Loại", ["Bán trú", "Ngoại trú"])
 
-        name = st.text_input("Họ tên")
+        u = st.text_input("User")
+        p = st.text_input("Pass", type="password")
+        av = st.file_uploader("Avatar")
 
-        lop = st.selectbox("Lớp", [f"10A{i}" for i in range(1,10)])
+        if st.form_submit_button("OK"):
+            users = load("users.csv")
 
-        loai_hs = st.selectbox("Loại học sinh", ["Bán trú","Ngoại trú"])
-
-        u_id = st.text_input("Tài khoản")
-        pwd = st.text_input("Mật khẩu", type="password")
-
-        avatar = st.file_uploader("Avatar", type=["jpg","png"])
-
-        if st.form_submit_button("Đăng ký"):
-
-            users = load_data("hoc-sinh.csv")
-
-            if any(u.get("username")==u_id for u in users):
-                st.error("Tài khoản tồn tại")
+            if any(x["username"] == u for x in users):
+                st.error("Tồn tại")
             else:
                 users.append({
-                    "username": u_id,
-                    "password": hash_password(pwd),
-                    "name": name,
-                    "class": lop,
-                    "role": "student",
-                    "avatar": image_to_base64(avatar),
-                    "loai_hs": loai_hs
+                    "username":u,
+                    "password":hash_pw(p),
+                    "name":name,
+                    "class":cls,
+                    "role":"student",
+                    "avatar":img64(av),
+                    "type":utype
                 })
-
-                save_all_data("hoc-sinh.csv", users)
+                save("users.csv", users)
                 st.success("OK")
-                st.session_state.page = "login"
+                st.session_state.page="login"
 
 # ==========================================
 # LOGIN
 # ==========================================
 
-def login_page():
+def login():
+    st.title("🏫 LOGIN")
 
     u = st.text_input("User")
     p = st.text_input("Pass", type="password")
 
     if st.button("Login"):
 
-        users = load_data("hoc-sinh.csv")
+        users = load("users.csv")
 
-        user = next((x for x in users if x["username"]==u and x["password"]==hash_password(p)), None)
+        user = next((x for x in users if x["username"]==u and x["password"]==hash_pw(p)), None)
 
         if user:
-            st.session_state.logged_in = True
-            st.session_state.user_info = user
+            st.session_state.login=True
+            st.session_state.user=user
             st.rerun()
-
         else:
             st.error("Sai")
+
+    if st.button("Register"):
+        st.session_state.page="register"
+        st.rerun()
 
 # ==========================================
 # MAIN
 # ==========================================
 
-def main_app():
+def app():
 
-    user = st.session_state.user_info
+    u = st.session_state.user
 
-    st.sidebar.title(user["name"])
-
-    if st.sidebar.button("Logout"):
-        st.session_state.clear()
-        st.rerun()
+    st.sidebar.title(u["name"])
+    st.sidebar.write(u["class"])
+    st.sidebar.button("Logout", on_click=lambda: st.session_state.clear())
 
     # ======================================
     # STUDENT
     # ======================================
 
-    if user["role"] == "student":
-
-        st.title("🎓 HỌC SINH")
+    if u["role"]=="student":
 
         tabs = [
+
             "🔔 Thông báo",
             "📸 Điểm danh",
             "📝 Xin nghỉ",
@@ -184,104 +151,120 @@ def main_app():
             "🎉 Sự kiện"
         ]
 
-        if user["loai_hs"] == "Bán trú":
-            tabs.insert(2, "🍱 Hủy bữa")
+        if u["type"]=="Bán trú":
+            tabs.insert(2,"🍱 Hủy bữa")
 
-        tbs = st.tabs(tabs)
+        t = st.tabs(tabs)
 
-        i = 0
+        idx = 0
 
-        # THÔNG BÁO
-        with tbs[i]:
+        # ---------------- THÔNG BÁO ----------------
+        with t[idx]:
             st.subheader("🔔 Thông báo")
 
-            tb = load_data("thong-bao.csv")
+            for x in reversed(load("notice.csv")):
+                st.info(f"{x['title']}\n{x['content']}\n{x['time']}")
 
-            for t in reversed(tb):
-                st.info(f"{t['Tiêu đề']} - {t['Nội dung']}")
+        idx+=1
 
-        i += 1
+        # ---------------- ĐIỂM DANH ----------------
+        with t[idx]:
+            img = st.camera_input("Cam")
 
-        # ĐIỂM DANH
-        with tbs[i]:
-            st.write("Điểm danh")
+            if st.button("Gửi"):
+                data = load("log.csv")
+                data.append({
+                    "type":"Điểm danh",
+                    "class":u["class"],
+                    "name":u["name"],
+                    "content":"Có mặt",
+                    "time":str(datetime.now()),
+                    "status":"pending",
+                    "img":img64(img)
+                })
+                save("log.csv",data)
+                st.success("OK")
 
-        i += 1
+        idx+=1
 
-        # HỦY BỮA (nếu có)
-        if user["loai_hs"] == "Bán trú":
-            with tbs[i]:
-                st.write("Hủy bữa")
-            i += 1
+        # ---------------- HỦY BỮA (CHỈ BÁN TRÚ) ----------------
+        if u["type"]=="Bán trú":
 
-        # XIN NGHỈ
-        with tbs[i]:
-            st.write("Xin nghỉ")
+            with t[idx]:
+                day = st.selectbox("Ngày",["T2","T3","T4","T5","T6"])
+                meal = st.multiselect("Bữa",["Trưa","Chiều"])
 
-        i += 1
-
-        # PHẢN ÁNH
-        with tbs[i]:
-            st.write("Phản ánh")
-
-        i += 1
-
-        # SỰ KIỆN
-        with tbs[i]:
-            st.write("Sự kiện")
-
-    # ======================================
-    # ADMIN
-    # ======================================
-
-    elif user["role"] == "admin_gv":
-
-        st.title("🏫 BAN GIÁM HIỆU")
-
-        tabs = st.tabs([
-            "Đơn nghỉ",
-            "Điểm danh",
-            "Phản ánh",
-            "Đăng bài",
-            "Thông báo"
-        ])
-
-        t_ng, t_dd, t_pa, t_post, t_tb = tabs
-
-        # THÔNG BÁO
-        with t_tb:
-
-            st.subheader("Gửi thông báo")
-
-            ds = load_data("thong-bao.csv")
-
-            with st.form("tb"):
-
-                t = st.text_input("Tiêu đề")
-                n = st.text_area("Nội dung")
-
-                if st.form_submit_button("Gửi"):
-
-                    ds.append({
-                        "Tiêu đề": t,
-                        "Nội dung": n,
-                        "Thời gian": str(datetime.now())
+                if st.button("Gửi"):
+                    data = load("log.csv")
+                    data.append({
+                        "type":"Báo ăn",
+                        "class":u["class"],
+                        "name":u["name"],
+                        "content":f"Hủy {day} {meal}",
+                        "time":str(datetime.now()),
+                        "status":"sent",
+                        "img":""
                     })
-
-                    save_all_data("thong-bao.csv", ds)
-
+                    save("log.csv",data)
                     st.success("OK")
+
+            idx+=1
+
+        # ---------------- XIN NGHỈ ----------------
+        with t[idx]:
+            txt = st.text_area("Lý do")
+            img = st.file_uploader("Ảnh")
+
+            if st.button("Gửi"):
+                data = load("log.csv")
+                data.append({
+                    "type":"Xin nghỉ",
+                    "class":u["class"],
+                    "name":u["name"],
+                    "content":txt,
+                    "time":str(datetime.now()),
+                    "status":"pending",
+                    "img":img64(img)
+                })
+                save("log.csv",data)
+
+        idx+=1
+
+        # ---------------- PHẢN ÁNH ----------------
+        with t[idx]:
+            txt = st.text_area("Ý kiến")
+
+            if st.button("Gửi"):
+                data = load("log.csv")
+                data.append({
+                    "type":"Phản ánh",
+                    "class":u["class"],
+                    "name":u["name"],
+                    "content":txt,
+                    "time":str(datetime.now()),
+                    "status":"sent",
+                    "img":""
+                })
+                save("log.csv",data)
+
+        idx+=1
+
+        # ---------------- SỰ KIỆN ----------------
+        with t[idx]:
+            for x in reversed(load("event.csv")):
+                st.subheader(x["title"])
+                st.write(x["content"])
 
 # ==========================================
 # RUN
 # ==========================================
 
-if not st.session_state.logged_in:
+if not st.session_state.login:
 
-    if st.session_state.page == "login":
-        login_page()
+    if st.session_state.page=="login":
+        login()
     else:
-        registration_page()
+        register()
 
 else:
-    main_app()
+    app()
