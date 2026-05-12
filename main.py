@@ -70,7 +70,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
 .main {
     background-color: #f5f7fb;
 }
