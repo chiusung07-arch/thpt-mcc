@@ -639,26 +639,20 @@ def main_app():
                 st.subheader("📌 Lịch sử đơn xin nghỉ")
 
                 logs = load_data("nhat-ky.csv")
-                my_requests = [i for i in logs
+                my_requests = [i for i in logs if i.get("Tên") == name_user]
 
-                            if i.get("Tên") == user["name"] and i.get("Loại") == "Xin nghỉ"
-             ]
-            if my_requests:
-                  for r in reversed(my_requests):
-                      st.info(
-                           f"📄 Nội dung: {r.get('Nội dung','')}\n\n"
-                           f"📌 Trạng thái: {r.get('Trạng thái','')}\n"
-                           f"🕒 {r.get('Thời gian','')}"
-                       )
-              else:
-                  st.warning("Chưa có đơn nào.")
-                    
-              index += 1
+                if my_requests:
+                    for r in reversed(my_requests):
+                        st.info(f"📄 Nội dung: {r.get('Nội dung')}\n📌 Trạng thái: {r.get('Trạng thái')}\n🕒 {r.get('Thời gian','')}")
+           else:
+                    st.warning("Chưa có đơn nào.")
+           index += 1
+
 # ==================================
 # PHẢN ÁNH
 # ==================================
 
-        with tbs[index]:
+           with tbs[index]:
 
             yk = st.text_area(
                 "Ý kiến phản ánh"
