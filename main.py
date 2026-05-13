@@ -635,25 +635,25 @@ def main_app():
             #LỊCH SỬ ĐƠN XIN NGHỈ
             #================================
 
-            st.divider()
-            st.subheader("📌 Lịch sử đơn xin nghỉ")
+                st.divider()
+                st.subheader("📌 Lịch sử đơn xin nghỉ")
 
-            logs = load_data("nhat-ky.csv")
-            my_requests = [i for i in logs
+                logs = load_data("nhat-ky.csv")
+                my_requests = [i for i in logs
 
-                        if i.get("Tên") == user["name"] and i.get("Loại") == "Xin nghỉ"
-            ]
-            if my_requests:
-                  for r in reversed(my_requests):
-                      st.info(
-                          f"📄 Nội dung: {r.get('Nội dung','')}\n\n"
-                          f"📌 Trạng thái: {r.get('Trạng thái','')}\n"
-                          f"🕒 {r.get('Thời gian','')}"
-                      )
-            else:
-                st.warning("Chưa có đơn nào.")
+                            if i.get("Tên") == user["name"] and i.get("Loại") == "Xin nghỉ"
+             ]
+             if my_requests:
+                   for r in reversed(my_requests):
+                       st.info(
+                           f"📄 Nội dung: {r.get('Nội dung','')}\n\n"
+                           f"📌 Trạng thái: {r.get('Trạng thái','')}\n"
+                           f"🕒 {r.get('Thời gian','')}"
+                       )
+             else:
+                  st.warning("Chưa có đơn nào.")
                     
-    index += 1
+     index += 1
 # ==================================
 # PHẢN ÁNH
 # ==================================
