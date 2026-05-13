@@ -157,7 +157,43 @@ for f in [
                 "Ảnh"
 
             ]).to_csv(f, index=False)
+            if f == "hoc-sinh.csv":
 
+    pd.DataFrame(columns=[
+
+        "username",
+        "password",
+        "name",
+        "class",
+        "role",
+        "avatar",
+        "loai_hs"
+
+    ]).to_csv(f, index=False)
+
+elif f == "giao-vien.csv":
+
+    pd.DataFrame(columns=[
+
+        "username",
+        "password",
+        "name",
+        "class",
+        "role"
+
+    ]).to_csv(f, index=False)
+
+elif f == "thoi-khoa-bieu.csv":
+
+    pd.DataFrame(columns=[
+
+        "Lớp",
+        "Ảnh"
+
+    ]).to_csv(f, index=False)
+
+elif f == "su-kien.csv":
+            
 # ==========================================
 # SESSION
 # ==========================================
