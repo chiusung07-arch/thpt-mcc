@@ -157,19 +157,6 @@ for f in [
                 "Ảnh"
 
             ]).to_csv(f, index=False)
-            if f == "hoc-sinh.csv":
-
-    pd.DataFrame(columns=[
-
-        "username",
-        "password",
-        "name",
-        "class",
-        "role",
-        "avatar",
-        "loai_hs"
-
-    ]).to_csv(f, index=False)
 
 # ==========================================
 # SESSION
