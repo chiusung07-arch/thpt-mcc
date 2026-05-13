@@ -1124,7 +1124,7 @@ def render_admin(loai, msg):
     # ADMIN BÁN TRÚ
     # ======================================
 
-      elif user.get('role') == "admin_an":
+    elif user.get('role') == "admin_an":
 
         st.title(
             "🍱 QUẢN LÝ BÁN TRÚ"
