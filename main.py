@@ -171,27 +171,6 @@ for f in [
 
     ]).to_csv(f, index=False)
 
-        elif f == "giao-vien.csv":
-
-              pd.DataFrame(columns=[
-
-                  "username",
-                  "password",
-                  "name",
-                  "class",
-                  "role"
-
-              ]).to_csv(f, index=False)
-
-          elif f == "thoi-khoa-bieu.csv":
-
-              pd.DataFrame(columns=[
-
-                  "Lớp",
-                  "Ảnh"
-
-              ]).to_csv(f, index=False)
-            
 # ==========================================
 # SESSION
 # ==========================================
