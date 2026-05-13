@@ -98,7 +98,10 @@ def save_all_data(file_name, data_list):
 # ==========================================
 
 for f in [
+    for f in [
     "hoc-sinh.csv",
+    "giao-vien.csv",
+    "thoi-khoa-bieu.csv",
     "nhat-ky.csv",
     "su-kien.csv",
     "thong-bao.csv"
