@@ -644,16 +644,16 @@ def main_app():
                             if i.get("Tên") == user["name"] and i.get("Loại") == "Xin nghỉ"
              ]
               if my_requests:
-              for r in reversed(my_requests):
-                       st.info(
+                  for r in reversed(my_requests):
+                      st.info(
                            f"📄 Nội dung: {r.get('Nội dung','')}\n\n"
                            f"📌 Trạng thái: {r.get('Trạng thái','')}\n"
                            f"🕒 {r.get('Thời gian','')}"
                        )
-             else:
-              st.warning("Chưa có đơn nào.")
+              else:
+                  st.warning("Chưa có đơn nào.")
                     
-             index += 1
+              index += 1
 # ==================================
 # PHẢN ÁNH
 # ==================================
