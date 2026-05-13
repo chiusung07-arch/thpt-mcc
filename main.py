@@ -933,13 +933,10 @@ def render_admin(loai, msg):
             )
 
         with t_pa:
-
             for i, item in enumerate(
                 nhat_ky
             ):
-
                 if item['Loại']=="Phản ánh":
-                     pass
                     with st.container(
                         border=True
                     ):
