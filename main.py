@@ -636,18 +636,18 @@ def main_app():
             #LỊCH SỬ ĐƠN XIN NGHỈ
             #================================
 
-                st.divider()
-                st.subheader("📌 Lịch sử đơn xin nghỉ")
+         st.divider()
+         st.subheader("📌 Lịch sử đơn xin nghỉ")
 
-                logs = load_data("nhat-ky.csv")
-                my_requests = [i for i in logs if i.get("Tên") == user['name']]
+         logs = load_data("nhat-ky.csv")
+         my_requests = [i for i in logs if i.get("Tên") == user['name']]
 
                 if my_requests:
                     for r in reversed(my_requests):
                         st.info(f"📄 Nội dung: {r.get('Nội dung')}\n📌 Trạng thái: {r.get('Trạng thái')}\n🕒 {r.get('Thời gian','')}")
-            else:
-                st.warning("📌 Lịch sử đơn xin nghỉ.")
-            index += 1
+         else:
+             st.warning("📌 Lịch sử đơn xin nghỉ.")
+         index += 1
 
 # ==================================
 # PHẢN ÁNH
