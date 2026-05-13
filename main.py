@@ -646,7 +646,7 @@ def main_app():
                     for r in reversed(my_requests):
                         st.info(f"📄 Nội dung: {r.get('Nội dung')}\n📌 Trạng thái: {r.get('Trạng thái')}\n🕒 {r.get('Thời gian','')}")
             else:
-                st.warning("Chưa có đơn nào.")
+                st.warning("📌 Lịch sử đơn xin nghỉ.")
             index += 1
 
 # ==================================
