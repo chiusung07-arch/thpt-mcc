@@ -639,7 +639,7 @@ def main_app():
                 st.subheader("📌 Lịch sử đơn xin nghỉ")
 
                 logs = load_data("nhat-ky.csv")
-                my_requests = [i for i in logs if i.get("Tên") == name_user]
+                my_requests = [i for i in logs if i.get("Tên") == user['name']]
 
                 if my_requests:
                     for r in reversed(my_requests):
