@@ -895,89 +895,47 @@ def main_app():
         t_ng, t_dd, t_pa, t_sk = tabs
 
         def render_admin(loai, msg):
+            nhat_ky = load_data("nhat-ky.csv")
 
-            for i, item in enumerate(
-                nhat_ky
-            ):
+            for i, item in enumerate(nhat_ky):
 
                 if item['Loại'] == loai:
 
-                    with st.container(
-                        border=True
-                    ):
+                   title = f"👤 {item['Tên']} | 🕒 {item['Thời gian']} | 📌 {item['Lớp']}"
 
-                        st.markdown(
-                            f"### 👤 {item['Tên']}"
-                        )
+                   with st.expander(title):
 
-                        st.write(
-                            item['Nội dung']
-                        )
+                       st.write("📄 Nội dung:")
+                       st.write(item['Nội dung'])
 
-                        st.info(
-                            f"📌 {item['Trạng thái']}"
-                        )
+                       st.info(f"📌 Trạng thái: {item['Trạng thái']}")
 
-                        if item.get('Ảnh'):
+                       if item.get('Ảnh'):
+                           try:
+                               st.image(
+                                   base64.b64decode(item['Ảnh']),
+                                   use_container_width=True
+                               )
+                           except:
+                               pass
 
-                            try:
+                       c1, c2 = st.columns(2)
 
-                                st.image(
-                                    base64.b64decode(
-                                        item['Ảnh']
-                                    ),
-                                    width=300
-                                )
+                       with c1:
+                          if st.button("✅ Duyệt", key=f"d_{loai}_{i}"):
 
-                            except:
-                                pass
+                              nhat_ky[i]['Trạng thái'] = msg
+                              save_all_data("nhat-ky.csv", nhat_ky)
+                              st.success("Đã duyệt")
+                              st.rerun()
 
-                        c1, c2 = st.columns(2)
+                       with c2:
+                           if st.button("❌ Không duyệt", key=f"tc_{loai}_{i}"):
 
-                        with c1:
-
-                            if st.button(
-                                "✅ Duyệt",
-                                key=f"d_{loai}_{i}"
-                            ):
-
-                                nhat_ky[i][
-                                    'Trạng thái'
-                                ] = msg
-
-                                save_all_data(
-                                    "nhat-ky.csv",
-                                    nhat_ky
-                                )
-
-                                st.success(
-                                    "✅ Đã duyệt!"
-                                )
-
-                                st.rerun()
-
-                        with c2:
-
-                            if st.button(
-                                "❌ Không duyệt",
-                                key=f"tc_{loai}_{i}"
-                            ):
-
-                                nhat_ky[i][
-                                    'Trạng thái'
-                                ] = "❌ Không duyệt"
-
-                                save_all_data(
-                                    "nhat-ky.csv",
-                                    nhat_ky
-                                )
-
-                                st.error(
-                                    "❌ Đã từ chối!"
-                                )
-
-                                st.rerun()
-
+                               nhat_ky[i]['Trạng thái'] = "❌ Không duyệt"
+                               save_all_data("nhat-ky.csv", nhat_ky)
+                               st.error("Đã từ chối")
+                               st.rerun()
         with t_ng:
 
             render_admin(
