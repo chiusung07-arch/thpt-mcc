@@ -631,6 +631,7 @@ def main_app():
 
                 st.success(
                     "✅ Đã gửi đơn!")
+                    
             # ================================
             #LỊCH SỬ ĐƠN XIN NGHỈ
             #================================
@@ -646,7 +647,7 @@ def main_app():
                         st.info(f"📄 Nội dung: {r.get('Nội dung')}\n📌 Trạng thái: {r.get('Trạng thái')}\n🕒 {r.get('Thời gian','')}")
                 else:
                     st.warning("Chưa có đơn nào.")
-                index += 1
+                    index += 1
 
         # ==================================
         # PHẢN ÁNH
