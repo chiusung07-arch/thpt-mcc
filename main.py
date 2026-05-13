@@ -647,7 +647,6 @@ def main_app():
                         st.info(f"📄 Nội dung: {r.get('Nội dung')}\n📌 Trạng thái: {r.get('Trạng thái')}\n🕒 {r.get('Thời gian','')}")
            else:
                st.warning("Chưa có đơn nào.")
-          
            index += 1
 
         # ==================================
@@ -655,7 +654,6 @@ def main_app():
         # ==================================
 
         with tbs[index]:
-
             yk = st.text_area(
                 "Ý kiến phản ánh"
             )
