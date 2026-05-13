@@ -894,32 +894,92 @@ def main_app():
 
         t_ng, t_dd, t_pa, t_sk = tabs
 
-def render_admin(loai, msg):
-    nhat_ky = load_data("nhat-ky.csv")
-    for i, item in enumerate(nhat_ky):
-        if item['Loại'] == loai:
-            title = f"👤 {item['Tên']} | 🕒 {item['Thời gian']} | 📌 {item['Lớp']}"
+        def render_admin(loai, msg):
 
-            with st.expander(title):   # 👈 CÁI BẠN MUỐN LÀ Ở ĐÂY
-                st.write(item['Nội dung'])
-                st.info(item['Trạng thái'])
+            for i, item in enumerate(
+                nhat_ky
+            ):
 
-                if item.get('Ảnh'):
-                    st.image(base64.b64decode(item['Ảnh']))
+                if item['Loại'] == loai:
 
-                c1, c2 = st.columns(2)
-                with c1:
-                    if st.button("✅ Duyệt", key=f"d_{loai}_{i}"):
-                        nhat_ky[i]['Trạng thái'] = msg
-                        save_all_data("nhat-ky.csv", nhat_ky)
-                        st.rerun()
-                with c2:
-                    if st.button("❌ Không duyệt", key=f"tc_{loai}_{i}"):
-                        nhat_ky[i]['Trạng thái'] = "❌ Không duyệt"
-                        save_all_data("nhat-ky.csv", nhat_ky)
-                        st.rerun()
+                    with st.container(
+                        border=True
+                    ):
+
+                        st.markdown(
+                            f"### 👤 {item['Tên']}"
+                        )
+
+                        st.write(
+                            item['Nội dung']
+                        )
+
+                        st.info(
+                            f"📌 {item['Trạng thái']}"
+                        )
+
+                        if item.get('Ảnh'):
+
+                            try:
+
+                                st.image(
+                                    base64.b64decode(
+                                        item['Ảnh']
+                                    ),
+                                    width=300
+                                )
+
+                            except:
+                                pass
+
+                        c1, c2 = st.columns(2)
+
+                        with c1:
+
+                            if st.button(
+                                "✅ Duyệt",
+                                key=f"d_{loai}_{i}"
+                            ):
+
+                                nhat_ky[i][
+                                    'Trạng thái'
+                                ] = msg
+
+                                save_all_data(
+                                    "nhat-ky.csv",
+                                    nhat_ky
+                                )
+
+                                st.success(
+                                    "✅ Đã duyệt!"
+                                )
+
+                                st.rerun()
+
+                        with c2:
+
+                            if st.button(
+                                "❌ Không duyệt",
+                                key=f"tc_{loai}_{i}"
+                            ):
+
+                                nhat_ky[i][
+                                    'Trạng thái'
+                                ] = "❌ Không duyệt"
+
+                                save_all_data(
+                                    "nhat-ky.csv",
+                                    nhat_ky
+                                )
+
+                                st.error(
+                                    "❌ Đã từ chối!"
+                                )
+
+                                st.rerun()
 
         with t_ng:
+
             render_admin(
                 "Xin nghỉ",
                 "✅ Đã duyệt nghỉ!"
@@ -933,10 +993,13 @@ def render_admin(loai, msg):
             )
 
         with t_pa:
+
             for i, item in enumerate(
                 nhat_ky
             ):
+
                 if item['Loại']=="Phản ánh":
+
                     with st.container(
                         border=True
                     ):
