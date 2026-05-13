@@ -100,7 +100,7 @@ def save_all_data(file_name, data_list):
 for f in [
     "hoc-sinh.csv",
     "nhat-ky.csv",
-    "su-kien.csv"
+    "su-kien.csv",
     "thong-bao.csv"
 ]:
 
