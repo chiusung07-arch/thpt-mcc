@@ -635,8 +635,8 @@ def main_app():
             #LỊCH SỬ ĐƠN XIN NGHỈ
             #================================
 
-                st.divider()
-                st.subheader("📌 Lịch sử đơn xin nghỉ")
+            st.divider()
+            st.subheader("📌 Lịch sử đơn xin nghỉ")
 
                 logs = load_data("nhat-ky.csv")
                 my_requests = [i for i in logs
