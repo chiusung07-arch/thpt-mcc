@@ -650,8 +650,7 @@ def main_app():
 # ==================================
 # PHẢN ÁNH
 # ==================================
-
-        with tbs[index]:
+with tbs[index]:
             yk = st.text_area(
                 "Ý kiến phản ánh"
             )
