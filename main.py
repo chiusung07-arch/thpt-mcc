@@ -872,9 +872,11 @@ def main_app():
 
     elif user.get('role') == "admin_gv":
 
-        st.title(
-            "🏫 BAN GIÁM HIỆU"
-        )
+        st.markdown("""
+        <h2 style='color:#1565C0;'>
+        🏫 Ban Giám Hiệu
+        </h2>
+        """, unsafe_allow_html=True)
 
         nhat_ky = load_data(
             "nhat-ky.csv"
