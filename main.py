@@ -643,7 +643,7 @@ def main_app():
 
                             if i.get("Tên") == user["name"] and i.get("Loại") == "Xin nghỉ"
              ]
-              if my_requests:
+            if my_requests:
                   for r in reversed(my_requests):
                       st.info(
                            f"📄 Nội dung: {r.get('Nội dung','')}\n\n"
