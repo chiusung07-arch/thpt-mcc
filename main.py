@@ -630,11 +630,10 @@ def main_app():
                 )
 
                 st.success(
-                    "✅ Đã gửi đơn!"
-                )
-# ================================
-# LỊCH SỬ ĐƠN XIN NGHỈ
-# ================================
+                    "✅ Đã gửi đơn!")
+            # ================================
+            #LỊCH SỬ ĐƠN XIN NGHỈ
+            #================================
 
                 st.divider()
                 st.subheader("📌 Lịch sử đơn xin nghỉ")
@@ -901,7 +900,7 @@ def main_app():
 
             for i, item in enumerate(nhat_ky):
 
-                if item['Loại'] == loai:
+                if item['Loại'] == loai and item['Trạng thái'] == "📨 Đã gửi":
 
                    title = f"👤 {item['Tên']} | 🕒 {item['Thời gian']} | 📌 {item['Lớp']}"
 
