@@ -1128,6 +1128,60 @@ def main_app():
                         )
 
                         st.rerun()
+        with t_tb:
+
+            st.subheader("🔔 Đăng thông báo")
+
+            ds_tb = load_data("thong-bao.csv")
+
+            with st.form("tb_form"):
+
+                tieu_de = st.text_input("Tiêu đề")
+
+                noi_dung = st.text_area("Nội dung")
+
+                if st.form_submit_button("🚀 Đăng thông báo"):
+
+                    ds_tb.append({
+
+                        "Tiêu đề": tieu_de,
+
+                        "Nội dung": noi_dung,
+
+                        "Thời gian":
+                        datetime.now().strftime(
+                            "%H:%M %d/%m/%Y"
+                        )
+
+                    })
+
+                    save_all_data(
+                        "thong-bao.csv",
+                        ds_tb
+                    )
+
+                    st.success("✅ Đã đăng!")
+
+                    st.rerun()
+            st.divider()
+            
+            st.subheader("📜 Danh sách thông báo")
+            
+            for tb in reversed(ds_tb):
+
+                with st.container(border=True):
+
+                    st.markdown(
+                        f"### 🔔 {tb['Tiêu đề']}"
+                    )
+
+                    st.caption(
+                        tb['Thời gian']
+                    )
+
+                    st.write(
+                        tb['Nội dung']
+                    )
 
     # ======================================
     # ADMIN BÁN TRÚ
