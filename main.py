@@ -413,7 +413,7 @@ def main_app():
     ):
 
         for k in list(st.session_state.keys()):
-    del st.session_state[k]
+            del st.session_state[k]
 
         st.rerun()
 
