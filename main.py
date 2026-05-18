@@ -651,7 +651,7 @@ def main_app():
                     st.info(f"📄 Nội dung: {r.get('Nội dung')}\n📌 Trạng thái: {r.get('Trạng thái')}\n🕒 {r.get('Thời gian','')}")
             else:
                 st.warning("📌 Lịch sử đơn xin nghỉ.")
-            index += 1
+        index += 1
     
                 # ==================================
                 # PHẢN ÁNH
@@ -861,7 +861,7 @@ def main_app():
                             )
 
                             st.rerun()
-                         index += 1
+        index += 1
                         
                         # ==================================
                         # THÔNG BÁO
@@ -899,7 +899,7 @@ def main_app():
                                     "Chưa có thông báo."
                                 )
 
-                        index += 1
+        index += 1
 
     # ======================================
     # ADMIN BGH
