@@ -728,9 +728,9 @@ def main_app():
 
         index += 1
 
-# ==================================
-# SỰ KIỆN
-# ==================================
+        # ==================================
+        # SỰ KIỆN
+        # ==================================
 
         with tbs[index]:
 
@@ -861,44 +861,45 @@ def main_app():
                             )
 
                             st.rerun()
-# ==================================
-# THÔNG BÁO
-# ==================================
+                         index += 1
+                        
+                        # ==================================
+                        # THÔNG BÁO
+                        # ==================================
 
-with tbs[index]:
+                        with tbs[index]:
 
-    st.subheader("🔔 Thông báo từ nhà trường")
+                            st.subheader("🔔 Thông báo từ nhà trường")
 
-    ds_tb = load_data(
-        "thong-bao.csv"
-    )
+                            ds_tb = load_data(
+                                "thong-bao.csv"
+                            )
 
-    if ds_tb:
+                            if ds_tb:
 
-        for tb in reversed(ds_tb):
+                                for tb in reversed(ds_tb):
 
-            with st.container(border=True):
+                                    with st.container(border=True):
 
-                st.markdown(
-                    f"### {tb['Tiêu đề']}"
-                )
+                                        st.markdown(
+                                            f"### {tb['Tiêu đề']}"
+                                        )
 
-                st.caption(
-                    tb['Thời gian']
-                )
+                                        st.caption(
+                                            tb['Thời gian']
+                                        )
 
-                st.write(
-                    tb['Nội dung']
-                )
+                                        st.write(
+                                            tb['Nội dung']
+                                        )
 
-     else:
+                            else:
 
-         st.info(
-             "Chưa có thông báo."
-         )
+                                st.info(
+                                    "Chưa có thông báo."
+                                )
 
- index += 1
-
+                        index += 1
 
     # ======================================
     # ADMIN BGH
