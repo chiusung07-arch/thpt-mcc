@@ -511,44 +511,7 @@ def main_app():
 
         index += 1
         
-        # ==================================
-        # THÔNG BÁO
-        # ==================================
-
-        with tbs[index]:
-
-            st.subheader("🔔 Thông báo từ nhà trường")
-
-            ds_tb = load_data(
-                "thong-bao.csv"
-            )
-
-            if ds_tb:
-
-                for tb in reversed(ds_tb):
-
-                    with st.container(border=True):
-
-                        st.markdown(
-                            f"### {tb['Tiêu đề']}"
-                        )
-
-                        st.caption(
-                            tb['Thời gian']
-                        )
-
-                        st.write(
-                            tb['Nội dung']
-                        )
-
-            else:
-
-                st.info(
-                    "Chưa có thông báo."
-                )
-
-        index += 1
-
+        
         # ==================================
         # HỦY BỮA
         # ==================================
@@ -898,6 +861,44 @@ def main_app():
                             )
 
                             st.rerun()
+# ==================================
+# THÔNG BÁO
+# ==================================
+
+with tbs[index]:
+
+    st.subheader("🔔 Thông báo từ nhà trường")
+
+    ds_tb = load_data(
+        "thong-bao.csv"
+    )
+
+    if ds_tb:
+
+        for tb in reversed(ds_tb):
+
+            with st.container(border=True):
+
+                st.markdown(
+                    f"### {tb['Tiêu đề']}"
+                )
+
+                st.caption(
+                    tb['Thời gian']
+                )
+
+                st.write(
+                    tb['Nội dung']
+                )
+
+     else:
+
+         st.info(
+             "Chưa có thông báo."
+         )
+
+ index += 1
+
 
     # ======================================
     # ADMIN BGH
