@@ -876,15 +876,11 @@ def main_app():
         )
 
         tabs = st.tabs([
-
             "📑 Đơn nghỉ",
-
             "📸 Điểm danh",
-
             "💬 Phản ánh",
-
-            "📢 Đăng bài"
-
+            "📢 Đăng bài",
+            "🔔 Thông báo"
         ])
 
         t_ng, t_dd, t_pa, t_sk = tabs
