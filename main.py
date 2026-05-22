@@ -570,7 +570,7 @@ def main_app():
             # HỦY BỮA
             # ==================================
 
-             if user.get("loai_hs") == "Bán trú":
+            if user.get("loai_hs") == "Bán trú":
 
                 with tbs[index]:
 
