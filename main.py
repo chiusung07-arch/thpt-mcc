@@ -424,7 +424,7 @@ def main_app():
     if user.get('role') == "student":
 
         st.title(
-            "🎓 CỔNG HỌC SINH"
+            "🎓 HỌC MỖI NGÀY"
         )
 
         tabs = [
