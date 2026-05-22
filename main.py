@@ -407,6 +407,13 @@ def main_app():
     st.sidebar.info(
         f"🏫 {user.get('class','')}"
     )
+    menu = st.sidebar.radio(
+    "📂 Menu",
+    [
+        "🏠 Trang chủ",
+        "📝 Cập nhật thông tin"
+    ]
+)
 
     if st.sidebar.button(
         "ĐĂNG XUẤT"
