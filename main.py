@@ -507,63 +507,63 @@ def main_app():
 
             index = 0
     
-        # ==================================
-        # ĐIỂM DANH
-        # ==================================
+            # ==================================
+            # ĐIỂM DANH
+            # ==================================
 
-        with tbs[index]:
+            with tbs[index]:
 
-            st.subheader(
-                "📸 Điểm danh AI"
-            )
-
-            a_dd = st.camera_input(
-                "Chụp khuôn mặt"
-            )
-
-            if (
-                a_dd
-                and
-                st.button("GỬI ĐIỂM DANH")
-            ):
-
-                data = load_data(
-                    "nhat-ky.csv"
+                st.subheader(
+                    "📸 Điểm danh AI"
                 )
 
-                data.append({
-
-                    "Loại":"Điểm danh",
-
-                    "Lớp":user['class'],
-
-                    "Tên":user['name'],
-
-                    "Nội dung":"Có mặt",
-
-                    "Thời gian":
-                    datetime.now().strftime(
-                        "%H:%M %d/%m"
-                    ),
-
-                    "Trạng thái":
-                    "📨 Đã gửi",
-
-                    "Ảnh":
-                    image_to_base64(a_dd)
-
-                })
-
-                save_all_data(
-                    "nhat-ky.csv",
-                    data
+                a_dd = st.camera_input(
+                    "Chụp khuôn mặt"
                 )
 
-                st.success(
-                    "✅ Đã gửi điểm danh!"
-                )
+                if (
+                    a_dd
+                    and
+                    st.button("GỬI ĐIỂM DANH")
+                ):
 
-        index += 1
+                    data = load_data(
+                        "nhat-ky.csv"
+                    )
+
+                    data.append({
+
+                        "Loại":"Điểm danh",
+
+                        "Lớp":user['class'],
+
+                        "Tên":user['name'],
+
+                        "Nội dung":"Có mặt",
+
+                        "Thời gian":
+                        datetime.now().strftime(
+                            "%H:%M %d/%m"
+                        ),
+
+                        "Trạng thái":
+                        "📨 Đã gửi",
+
+                        "Ảnh":
+                        image_to_base64(a_dd)
+
+                    })
+
+                    save_all_data(
+                        "nhat-ky.csv",
+                        data
+                    )
+
+                    st.success(
+                        "✅ Đã gửi điểm danh!"
+                    )
+
+            index += 1
         
         
         # ==================================
