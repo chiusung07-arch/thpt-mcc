@@ -505,7 +505,7 @@ def main_app():
 
             tbs = st.tabs(tabs)
 
-        index = 0
+            index = 0
     
         # ==================================
         # ĐIỂM DANH
