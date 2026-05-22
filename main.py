@@ -407,13 +407,6 @@ def main_app():
     st.sidebar.info(
         f"🏫 {user.get('class','')}"
     )
-    menu = st.sidebar.radio(
-    "📂 Menu",
-    [
-        "🏠 Trang chủ",
-        "📝 Cập nhật thông tin"
-    ]
-)
 
     if st.sidebar.button(
         "ĐĂNG XUẤT"
@@ -429,84 +422,37 @@ def main_app():
     # ======================================
 
     if user.get('role') == "student":
-        
-        # ==================================
-        # CẬP NHẬT THÔNG TIN
-        # ==================================
 
-        if menu == "📝 Cập nhật thông tin":
+        st.title(
+            "🎓 CỔNG HỌC SINH"
+        )
 
-            st.title("📝 Cập nhật thông tin cá nhân")
+        tabs = [
 
-            cccd = st.text_input("Số CCCD")
+            "📸 Điểm danh",
 
-            sdt = st.text_input("Số điện thoại")
+            "📝 Xin nghỉ",
 
-            diachi = st.text_area("Địa chỉ")
+            "💬 Phản ánh",
 
-            ngaysinh = st.date_input("Ngày sinh")
+            "🎉 Sự kiện",
+            
+            "🔔 Thông báo"
 
-            cha = st.text_input("Tên phụ huynh")
+        ]
 
-            anh_cccd = st.file_uploader(
-                "📸 Ảnh CCCD",
-                type=['jpg','png','jpeg']
+        # chỉ bán trú mới có hủy bữa
+        if user.get("loai_hs") == "Bán trú":
+
+            tabs.insert(
+                1,
+                "🍱 Hủy bữa"
             )
 
-            if st.button("💾 Lưu thông tin"):
-
-                users = load_data("hoc-sinh.csv")
-
-                for i, u in enumerate(users):
-
-                    if u['username'] == user['username']:
-
-                        users[i]['cccd'] = cccd
-                        users[i]['sdt'] = sdt
-                        users[i]['diachi'] = diachi
-                        users[i]['ngaysinh'] = str(ngaysinh)
-                        users[i]['phuhuynh'] = cha
-
-                        users[i]['anh_cccd'] = image_to_base64(
-                            anh_cccd
-                        )
-
-                save_all_data(
-                    "hoc-sinh.csv",
-                    users
-                )
-
-                st.success("✅ Đã cập nhật!")
-        # ==================================
-        # TRANG CHỦ
-        # ==================================
-
-        elif menu == "🏠 Trang chủ":
-
-            tabs = [
-
-                "📸 Điểm danh",
-
-                "📝 Xin nghỉ",
-
-                "💬 Phản ánh",
-
-                "🎉 Sự kiện",
-
-                "🔔 Thông báo"
-            ]
-            # chỉ bán trú mới có hủy bữa
-            if user.get("loai_hs") == "Bán trú":
-
-                tabs.insert(
-                    1,
-                    "🍱 Hủy bữa"
-                )
-
-            tbs = st.tabs(tabs)
+        tbs = st.tabs(tabs)
 
         index = 0
-    
+
         # ==================================
         # ĐIỂM DANH
         # ==================================
