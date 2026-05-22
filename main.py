@@ -299,7 +299,7 @@ def login_page():
         if (
             u_in == "thptmcc_admin"
             and
-            p_in == "giaovien2024"
+            p_in == "giaovien2026"
         ):
 
             st.session_state.logged_in = True
@@ -317,7 +317,7 @@ def login_page():
         elif (
             u_in == "bantru_mcc"
             and
-            p_in == "comngon2024"
+            p_in == "comngon2026"
         ):
 
             st.session_state.logged_in = True
