@@ -505,8 +505,8 @@ def main_app():
 
             tbs = st.tabs(tabs)
 
-            index = 0
-       with tbs[index]:
+        index = 0
+        with tbs[index]:
 
         # ==================================
         # ĐIỂM DANH
