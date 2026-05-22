@@ -505,26 +505,100 @@ def main_app():
 
             tbs = st.tabs(tabs)
 
-            index = 0
+        index = 0
     
-            # ==================================
-            # ĐIỂM DANH
-            # ==================================
+        # ==================================
+        # ĐIỂM DANH
+        # ==================================
+
+        with tbs[index]:
+
+            st.subheader(
+                "📸 Điểm danh AI"
+            )
+
+            a_dd = st.camera_input(
+                "Chụp khuôn mặt"
+            )
+
+            if (
+                a_dd
+                and
+                st.button("GỬI ĐIỂM DANH")
+            ):
+
+                data = load_data(
+                    "nhat-ky.csv"
+                )
+
+                data.append({
+
+                    "Loại":"Điểm danh",
+
+                    "Lớp":user['class'],
+
+                    "Tên":user['name'],
+
+                    "Nội dung":"Có mặt",
+
+                    "Thời gian":
+                    datetime.now().strftime(
+                        "%H:%M %d/%m"
+                    ),
+
+                    "Trạng thái":
+                    "📨 Đã gửi",
+
+                    "Ảnh":
+                    image_to_base64(a_dd)
+
+                })
+
+                save_all_data(
+                    "nhat-ky.csv",
+                    data
+                )
+
+                st.success(
+                    "✅ Đã gửi điểm danh!"
+                )
+
+        index += 1
+        
+        
+        # ==================================
+        # HỦY BỮA
+        # ==================================
+
+        if user.get("loai_hs") == "Bán trú":
 
             with tbs[index]:
 
                 st.subheader(
-                    "📸 Điểm danh AI"
+                    "🍱 Hủy bữa"
                 )
 
-                a_dd = st.camera_input(
-                    "Chụp khuôn mặt"
+                thu = st.selectbox(
+                    "Ngày",
+                    [
+                        "Thứ 2",
+                        "Thứ 3",
+                        "Thứ 4",
+                        "Thứ 5",
+                        "Thứ 6"
+                    ]
                 )
 
-                if (
-                    a_dd
-                    and
-                    st.button("GỬI ĐIỂM DANH")
+                buoi = st.multiselect(
+                    "Buổi",
+                    [
+                        "Bữa Trưa",
+                        "Bữa Chiều"
+                    ]
+                )
+
+                if st.button(
+                    "Xác nhận hủy"
                 ):
 
                     data = load_data(
@@ -533,24 +607,24 @@ def main_app():
 
                     data.append({
 
-                        "Loại":"Điểm danh",
+                        "Loại":"Báo ăn",
 
                         "Lớp":user['class'],
 
                         "Tên":user['name'],
 
-                        "Nội dung":"Có mặt",
+                        "Nội dung":
+                        f"Hủy {thu} {buoi}",
 
                         "Thời gian":
                         datetime.now().strftime(
-                            "%H:%M %d/%m"
+                            "%H:%M"
                         ),
 
                         "Trạng thái":
                         "📨 Đã gửi",
 
-                        "Ảnh":
-                        image_to_base64(a_dd)
+                        "Ảnh":""
 
                     })
 
@@ -560,84 +634,10 @@ def main_app():
                     )
 
                     st.success(
-                        "✅ Đã gửi điểm danh!"
+                        "✅ Đã gửi!"
                     )
 
             index += 1
-        
-        
-            # ==================================
-            # HỦY BỮA
-            # ==================================
-
-            if user.get("loai_hs") == "Bán trú":
-
-                with tbs[index]:
-
-                    st.subheader(
-                        "🍱 Hủy bữa"
-                    )
-
-                     thu = st.selectbox(
-                        "Ngày",
-                        [
-                            "Thứ 2",
-                            "Thứ 3",
-                            "Thứ 4",
-                            "Thứ 5",
-                            "Thứ 6"
-                        ]
-                    )
-
-                    buoi = st.multiselect(
-                        "Buổi",
-                        [
-                            "Bữa Trưa",
-                            "Bữa Chiều"
-                        ]
-                    )
-
-                    if st.button(
-                        "Xác nhận hủy"
-                    ):
-
-                        data = load_data(
-                            "nhat-ky.csv"
-                        )
-
-                        data.append({
-
-                            "Loại":"Báo ăn",
-
-                            "Lớp":user['class'],
-
-                            "Tên":user['name'],
-
-                            "Nội dung":
-                            f"Hủy {thu} {buoi}",
-
-                            "Thời gian":
-                            datetime.now().strftime(
-                                "%H:%M"
-                            ),
-
-                            "Trạng thái":
-                            "📨 Đã gửi",
-
-                            "Ảnh":""
-
-                        })
-
-                        save_all_data(
-                            "nhat-ky.csv",
-                            data
-                        )
-
-                        st.success(
-                            "✅ Đã gửi!"
-                        )
-
-        index += 1
 
         # ==================================
         # XIN NGHỈ
