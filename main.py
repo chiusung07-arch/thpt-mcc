@@ -429,36 +429,83 @@ def main_app():
     # ======================================
 
     if user.get('role') == "student":
+        
+        # ==================================
+        # CẬP NHẬT THÔNG TIN
+        # ==================================
 
-        st.title(
-            "🎓 CỔNG HỌC SINH"
-        )
+        if menu == "📝 Cập nhật thông tin":
 
-        tabs = [
+            st.title("📝 Cập nhật thông tin cá nhân")
 
-            "📸 Điểm danh",
+            cccd = st.text_input("Số CCCD")
 
-            "📝 Xin nghỉ",
+            sdt = st.text_input("Số điện thoại")
 
-            "💬 Phản ánh",
+            diachi = st.text_area("Địa chỉ")
 
-            "🎉 Sự kiện",
-            
-            "🔔 Thông báo"
+            ngaysinh = st.date_input("Ngày sinh")
 
-        ]
+            cha = st.text_input("Tên phụ huynh")
 
-        # chỉ bán trú mới có hủy bữa
-        if user.get("loai_hs") == "Bán trú":
-
-            tabs.insert(
-                1,
-                "🍱 Hủy bữa"
+            anh_cccd = st.file_uploader(
+                "📸 Ảnh CCCD",
+                type=['jpg','png','jpeg']
             )
 
-        tbs = st.tabs(tabs)
+            if st.button("💾 Lưu thông tin"):
 
-        index = 0
+                users = load_data("hoc-sinh.csv")
+
+                for i, u in enumerate(users):
+
+                    if u['username'] == user['username']:
+
+                        users[i]['cccd'] = cccd
+                        users[i]['sdt'] = sdt
+                        users[i]['diachi'] = diachi
+                        users[i]['ngaysinh'] = str(ngaysinh)
+                        users[i]['phuhuynh'] = cha
+
+                        users[i]['anh_cccd'] = image_to_base64(
+                            anh_cccd
+                        )
+
+                save_all_data(
+                    "hoc-sinh.csv",
+                    users
+                )
+
+                st.success("✅ Đã cập nhật!")
+        # ==================================
+        # TRANG CHỦ
+        # ==================================
+
+        elif menu == "🏠 Trang chủ":
+
+            tabs = [
+
+                "📸 Điểm danh",
+
+                "📝 Xin nghỉ",
+
+                "💬 Phản ánh",
+
+                "🎉 Sự kiện",
+
+                "🔔 Thông báo"
+            ]
+            # chỉ bán trú mới có hủy bữa
+            if user.get("loai_hs") == "Bán trú":
+
+                tabs.insert(
+                    1,
+                    "🍱 Hủy bữa"
+                )
+
+            tbs = st.tabs(tabs)
+
+            index = 0
 
         # ==================================
         # ĐIỂM DANH
