@@ -306,7 +306,7 @@ def login_page():
 
             st.session_state.user_info = {
 
-                "name":"Ban Giám Hiệu",
+                "name":"admin",
                 "role":"admin_gv"
 
             }
@@ -909,7 +909,7 @@ def main_app():
 
         st.markdown("""
         <h2 style='color:#1565C0;'>
-        🏫 Ban Giám Hiệu
+        🏫 admin
         </h2>
         """, unsafe_allow_html=True)
 
